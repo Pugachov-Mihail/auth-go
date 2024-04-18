@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "dota_traker.auth.v1;auth";
+
+service AuthServer {
+  rpc AuthLogin(AuthLoginRequest) returns (AuthRegistrationResponse);
+  rpc AuthRegistration(AuthRegistrationRequest) returns (AuthRegistrationResponse);
+  rpc AuthRoles(AuthRolesRequest) returns (AuthRolesResponse);
+}
+
+message AuthRegistrationRequest {
+    string Login = 1;
+    string Password = 2;
+    string Password2 = 3;
+    int64 SteamId = 4;
+    string Email = 5;
+}
+
+message AuthLoginRequest {
+  string Login = 1;
+  string Password = 2;
+}
+
+message AuthRegistrationResponse {
+  string Token = 1;
+}
+
+message AuthRolesResponse {
+  bool RolesFlag = 1;
+}
+
+message AuthRolesRequest {
+  int64 UserId = 1;
+}

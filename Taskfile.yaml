@@ -1,0 +1,15 @@
+version: '3'
+
+
+tasks: 
+  run: 
+    cmds: 
+      - go run ./cmd/auth/main.go --config=./config/dev.yaml
+
+  generate:
+    aliases:
+      - gen
+    cmds: 
+      - protoc -I protos protos/proto/Auth/*.proto 
+        --go_out=./protos/gen
+        --go-grpc_out=./protos/gen/

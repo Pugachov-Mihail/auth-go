@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package admin;
+
+option go_package = "dota_traker.admin.v1;admin";
+
+
+service AdminPanel {
+    rpc AdminPermission(AdminPermissionRequest) returns (AdminPermissionResponse);
+    rpc AdminSettingsPanel(AdminSettiongsPanelRequest) returns (AdminSettingsPanelResponse);
+    rpc AdminListInformation(AdminListInformationRequest) returns (AdminListInformationsResponse);
+ }
+
+
+message AdminPermissionRequest {
+    string Email = 1;
+    bool IsAdmin = 2;
+}
+
+message AdminPermissionResponse {
+    bool Success = 1;
+}
+
+
+message AdminSettiongsPanelRequest {
+    bool Success = 1;
+    string Email = 2;
+}
+
+message AdminSettingsPanelResponse {
+    int64 Service = 1;    
+}
+
+message AdminListInformationRequest {
+    bool Success = 1;
+    string Email = 2;
+}
+
+message AdminListInformationsResponse {
+    int64 Service = 1;
+    string ServiceName = 2;
+}

@@ -1,0 +1,11 @@
+env: "dev"
+storage_path: 
+  POSTGRES_PASSWORD: "123456"
+  POSTGRES_HOST: "localhost"
+  POSTGRES_USER: "postgre"
+  POSTGRES_DB: "postgre"
+grpc:
+  port: 44044
+  timeout: 1h
+
+  

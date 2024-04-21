@@ -5,7 +5,7 @@ package auth;
 option go_package = "dota_traker.auth.v1;auth";
 
 service AuthServer {
-  rpc AuthLogin(AuthLoginRequest) returns (AuthRegistrationResponse);
+  rpc AuthLogin(AuthLoginRequest) returns (AuthLoginResponse);
   rpc AuthRegistration(AuthRegistrationRequest) returns (AuthRegistrationResponse);
   rpc AuthRoles(AuthRolesRequest) returns (AuthRolesResponse);
 }
@@ -24,11 +24,16 @@ message AuthLoginRequest {
 }
 
 message AuthRegistrationResponse {
+  int64 UserId = 1;
+}
+
+message AuthLoginResponse {
   string Token = 1;
 }
 
 message AuthRolesResponse {
-  bool RolesFlag = 1;
+  int32 RolesFlag = 1;
+  string RoleName = 2;
 }
 
 message AuthRolesRequest {

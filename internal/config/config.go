@@ -18,6 +18,8 @@ type Config struct {
 	Env         string   `yaml:"env" env-required:"dev"`
 	StoragePath ConfigDB `yaml:"storage_path" env-required:"true"`
 	GRPC        GRPCConf `yaml:"grpc" env-required:"true"`
+	Secret      string   `yaml:"secret" env-required:"true"`
+	DevStorage  string   `yaml:"dev_storage" env-required:"true"`
 }
 
 type GRPCConf struct {

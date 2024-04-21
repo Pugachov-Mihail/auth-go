@@ -3,17 +3,29 @@ package main
 import (
 	"auth/internal/app"
 	"auth/internal/config"
-	"fmt"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
 	cfg := configapp.MustLoad()
 	log := configapp.SetupLoger(cfg.Env)
-
-	application := app.New(log, cfg.GRPC.Port)
-
-	application.GRPC.MustRun()
-
 	log.Debug("Init app")
-	fmt.Println(cfg)
+
+	application := app.New(log, cfg.GRPC.Port, cfg.DevStorage, cfg.GRPC.TimeOut)
+
+	go application.GRPC.MustRun()
+
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	sign := <-stop
+
+	log.Info("stop app", slog.String("signal", sign.String()))
+
+	application.GRPC.Stop()
+	log.Info("app stop")
 }

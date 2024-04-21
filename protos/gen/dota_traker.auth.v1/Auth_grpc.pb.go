@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServerClient interface {
-	AuthLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthRegistrationResponse, error)
+	AuthLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthLoginResponse, error)
 	AuthRegistration(ctx context.Context, in *AuthRegistrationRequest, opts ...grpc.CallOption) (*AuthRegistrationResponse, error)
 	AuthRoles(ctx context.Context, in *AuthRolesRequest, opts ...grpc.CallOption) (*AuthRolesResponse, error)
 }
@@ -35,8 +35,8 @@ func NewAuthServerClient(cc grpc.ClientConnInterface) AuthServerClient {
 	return &authServerClient{cc}
 }
 
-func (c *authServerClient) AuthLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthRegistrationResponse, error) {
-	out := new(AuthRegistrationResponse)
+func (c *authServerClient) AuthLogin(ctx context.Context, in *AuthLoginRequest, opts ...grpc.CallOption) (*AuthLoginResponse, error) {
+	out := new(AuthLoginResponse)
 	err := c.cc.Invoke(ctx, "/auth.AuthServer/AuthLogin", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (c *authServerClient) AuthRoles(ctx context.Context, in *AuthRolesRequest, 
 // All implementations must embed UnimplementedAuthServerServer
 // for forward compatibility
 type AuthServerServer interface {
-	AuthLogin(context.Context, *AuthLoginRequest) (*AuthRegistrationResponse, error)
+	AuthLogin(context.Context, *AuthLoginRequest) (*AuthLoginResponse, error)
 	AuthRegistration(context.Context, *AuthRegistrationRequest) (*AuthRegistrationResponse, error)
 	AuthRoles(context.Context, *AuthRolesRequest) (*AuthRolesResponse, error)
 	mustEmbedUnimplementedAuthServerServer()
@@ -76,7 +76,7 @@ type AuthServerServer interface {
 type UnimplementedAuthServerServer struct {
 }
 
-func (UnimplementedAuthServerServer) AuthLogin(context.Context, *AuthLoginRequest) (*AuthRegistrationResponse, error) {
+func (UnimplementedAuthServerServer) AuthLogin(context.Context, *AuthLoginRequest) (*AuthLoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthLogin not implemented")
 }
 func (UnimplementedAuthServerServer) AuthRegistration(context.Context, *AuthRegistrationRequest) (*AuthRegistrationResponse, error) {

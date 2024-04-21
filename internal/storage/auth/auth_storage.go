@@ -7,7 +7,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
+	"log"
+	"log/slog"
 )
 
 var (
@@ -19,20 +21,28 @@ type Storage struct {
 	db *sql.DB
 }
 
-func New(storagePath string) (*Storage, error) {
-	if configapp.MustLoad().Env == "dev" {
-		db, err := sql.Open("sqlite3", storagePath)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", "sqlite", err)
+func New(storagePath configapp.ConfigDB) (*Storage, error) {
+	connDb := storagePath.UserDb + ":" + storagePath.PassDb + "@" + storagePath.Host + ":" + storagePath.PortDb + "/" + storagePath.DbName
+
+	db, err := sql.Open("postgres", connDb)
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Fatal("Ошибка закрытия базы ", err)
 		}
-		return &Storage{db: db}, nil
-	} else {
-		return nil, fmt.Errorf("Долбаеб укажи верный ENV")
+	}()
+
+	if err = db.Ping(); err != nil {
+		log.Fatal("Ошибка базы ", err)
+		return nil, fmt.Errorf("%s: %w", "postgre", err)
 	}
+
+	return &Storage{db: db}, nil
 }
 
 func (s *Storage) SaveUser(
 	ctx context.Context,
+	log *slog.Logger,
 	email string,
 	passHash []byte,
 	login string,
@@ -49,6 +59,7 @@ func (s *Storage) SaveUser(
 
 	id, err := res.LastInsertId()
 	if err != nil {
+		log.Error("Ошибка сохранения пользователя: ", email, err)
 		return 0, fmt.Errorf("Save user: %w", err)
 	}
 

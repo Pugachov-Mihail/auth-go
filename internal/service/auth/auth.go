@@ -29,6 +29,7 @@ type Auth struct {
 type UserSaver interface {
 	SaveUser(
 		ctx context.Context,
+		log *slog.Logger,
 		email string,
 		password []byte,
 		login string,
@@ -104,7 +105,7 @@ func (a *Auth) RegisterUser(
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 
-	id, err := a.usrSaver.SaveUser(ctx, login, passHash, email, steamId)
+	id, err := a.usrSaver.SaveUser(ctx, log, login, passHash, email, steamId)
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserExists) {
 			log.Warn("Пользователь существует", err)

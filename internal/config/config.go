@@ -18,8 +18,7 @@ type Config struct {
 	Env         string   `yaml:"env" env-required:"dev"`
 	StoragePath ConfigDB `yaml:"storage_path" env-required:"true"`
 	GRPC        GRPCConf `yaml:"grpc" env-required:"true"`
-	Secret      string   `yaml:"secret" env-required:"true"`
-	DevStorage  string   `yaml:"dev_storage" env-required:"true"`
+	Secret      string   `yaml:"secret"`
 }
 
 type GRPCConf struct {
@@ -32,6 +31,7 @@ type ConfigDB struct {
 	UserDb string `yaml:"POSTGRES_USER"`
 	DbName string `yaml:"POSTGRES_DB"`
 	PassDb string `yaml:"POSTGRES_PASSWORD"`
+	PortDb string `yaml:"POSTGRES_PORT"`
 }
 
 func MustLoad() *Config {

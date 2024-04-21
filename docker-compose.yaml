@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  auth_mc:
+    build: .
+    
+
+
+  postgres:
+    image: postgres
+    container_name: db_postgre
+    environment:
+      POSTGRES_PASSWORD: "123456"
+      POSTGRES_HOST: "localhost"
+      POSTGRES_USER: "postgre"
+      POSTGRES_DB: "postgre"
+    ports:
+      - 5432:5432
+

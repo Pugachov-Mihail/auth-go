@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
+	"strconv"
 	"time"
 )
+
+//go:generate go run github.com/vektra/mockery/v2@v2.42.3 --all
 
 const (
 	Register   = "Register"
@@ -20,10 +23,11 @@ const (
 )
 
 type Auth struct {
-	log         *slog.Logger
-	tokenTTL    time.Duration
-	usrProvider UserProvider
-	usrSaver    UserSaver
+	Log             *slog.Logger
+	TokenTTL        time.Duration
+	usrProvider     UserProvider
+	usrSaver        UserSaver
+	registerNewuser RegisterNewUser
 }
 
 type UserSaver interface {
@@ -31,14 +35,18 @@ type UserSaver interface {
 		ctx context.Context,
 		log *slog.Logger,
 		email string,
-		password []byte,
+		passHash []byte,
 		login string,
-		steamId int64) (uid int64, err error)
+		steamId int64) (int64, error)
 }
 
 type UserProvider interface {
 	User(ctx context.Context, login string) (models.User, error)
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
+}
+
+type RegisterNewUser interface {
+	UserRegisterKafka(ctx context.Context, log *slog.Logger, userId int64, steamId int64) (bool, error)
 }
 
 // New конструктор сервисного слоя Auth
@@ -50,37 +58,38 @@ func New(
 	return &Auth{
 		usrSaver:    userSaver,
 		usrProvider: userProvider,
-		tokenTTL:    tokenTTl,
-		log:         log,
+		TokenTTL:    tokenTTl,
+		Log:         log,
 	}
 }
 
 func (a *Auth) LoginUser(ctx context.Context, login string, password string, secret string) (string, error) {
 
-	log := a.log.With(
+	log := a.Log.With(
 		slog.String("Auth ", Login),
 		slog.String("login", login))
-	log.Info("Register user", login)
+
+	log.Info("Login user " + login)
 
 	user, err := a.usrProvider.User(ctx, login)
 
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserNotFound) {
-			a.log.Warn("Пользователь не найден", err)
+			a.Log.Warn("Пользователь не найден", err)
 
-			return "", fmt.Errorf("%s: %w", Login, ErrInvalid)
+			return "", fmt.Errorf("%s: %s", Login, ErrInvalid)
 		}
-		a.log.Error("Ошибка получения пользователя", err)
+		a.Log.Error("Ошибка получения пользователя", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
-		a.log.Warn(ErrInvalid, err)
-		return "", fmt.Errorf("%s: %w", Login, ErrInvalid)
+	if err := bcrypt.CompareHashAndPassword([]byte(password), user.PassHash); err != nil {
+		a.Log.Warn(ErrInvalid, err)
+		return "", fmt.Errorf("%s: %s", Login, ErrInvalid)
 	}
-	token, err := jwt.NewToken(user, secret, a.tokenTTL)
+	token, err := jwt.NewToken(user, secret, a.TokenTTL)
 	if err != nil {
-		a.log.With("Ошибка генерации токена", err)
+		a.Log.With("Ошибка генерации токена", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
 	return token, nil
@@ -93,11 +102,11 @@ func (a *Auth) RegisterUser(
 	email string,
 	steamId int64) (int64, error) {
 
-	log := a.log.With(
+	log := a.Log.With(
 		slog.String("Auth ", Register),
 		slog.String("login", login))
 
-	log.Info("Registering user", login)
+	log.Info("Registering user " + login)
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -117,21 +126,27 @@ func (a *Auth) RegisterUser(
 
 	log.Info("Пользователь ", login, " зарегистрировался")
 
+	////TODO Сделать вызов кафки для передачи остальным мс о том что пользователь создан
+	//_, err = a.registerNewuser.UserRegisterKafka(ctx, log, id, steamId)
+	//if err != nil {
+	//	log.Error("Ошибка передачи информации о регистрации пользователя" + strconv.FormatInt(id, 10) + login)
+	//}
+
 	return id, nil
 }
 
 func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
-	log := a.log.With(
+	log := a.Log.With(
 		slog.String("Auth ", Roles),
 		slog.Int64("", uid))
-	log.Info("Find roles user", uid)
+	log.Info("Find roles user " + strconv.FormatInt(uid, 10))
 
 	roles, err := a.usrProvider.RolesUser(ctx, uid)
 
 	if err != nil {
 		return models.Roles{}, fmt.Errorf("%s: %w", Roles, err)
 	}
-	log.Info("Проверка ролей пользователя", uid)
+	log.Info("Проверка ролей пользователя " + strconv.FormatInt(uid, 10))
 
 	return roles, err
 }

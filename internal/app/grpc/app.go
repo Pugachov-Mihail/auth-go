@@ -5,6 +5,7 @@ import (
 	serverAuth "auth/internal/grpc/auth"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log/slog"
 	"net"
 )
@@ -20,6 +21,7 @@ func New(log *slog.Logger, port int, authServese serverAuth.Auth) *App {
 	serverAdmin.RegisterServerApi(grpcServer)
 	serverAuth.RegisterAuthServerApi(grpcServer, authServese)
 
+	reflection.Register(grpcServer)
 	return &App{
 		log:        log,
 		grpcServer: grpcServer,

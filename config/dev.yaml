@@ -2,8 +2,8 @@ env: "dev"
 storage_path:
     POSTGRES_PASSWORD: "123456"
     POSTGRES_HOST: "localhost"
-    POSTGRES_USER: "postgre"
-    POSTGRES_DB: "postgre"
+    POSTGRES_USER: "postgres"
+    POSTGRES_DB: "postgres"
     POSTGRES_PORT: "5432"
 grpc:
   port: 44044

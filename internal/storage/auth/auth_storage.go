@@ -22,15 +22,10 @@ type Storage struct {
 }
 
 func New(storagePath configapp.ConfigDB) (*Storage, error) {
-	connDb := storagePath.UserDb + ":" + storagePath.PassDb + "@" + storagePath.Host + ":" + storagePath.PortDb + "/" + storagePath.DbName
+	connDb := "postgres://" + storagePath.UserDb + ":" + storagePath.PassDb + "@" + storagePath.Host +
+		":" + storagePath.PortDb + "/" + storagePath.DbName + "?sslmode=disable"
 
 	db, err := sql.Open("postgres", connDb)
-
-	defer func() {
-		if err := db.Close(); err != nil {
-			log.Fatal("Ошибка закрытия базы ", err)
-		}
-	}()
 
 	if err = db.Ping(); err != nil {
 		log.Fatal("Ошибка базы ", err)
@@ -46,41 +41,31 @@ func (s *Storage) SaveUser(
 	email string,
 	passHash []byte,
 	login string,
-	steamId int64) (uid int64, err error) {
-	stmt, err := s.db.Prepare("INSERT INTO user(email, pass_hash, steam_id, login) VALUES(?,?,?,?)")
+	steamId int64) (int64, error) {
+	query := `INSERT INTO users_my (email, pass_hash, steam_id, login) VALUES ($1,$2,$3,$4) RETURNING id;`
+
+	var pk int64
+	err := s.db.QueryRow(query, email, passHash, steamId, login).Scan(&pk)
 	if err != nil {
-		return 0, fmt.Errorf("Save user: %w", err)
+		return 0, fmt.Errorf("save user: %w", err)
 	}
 
-	res, err := stmt.ExecContext(ctx, email, passHash, steamId, login)
-	if err != nil {
-		return 0, fmt.Errorf("Save user: %w", err)
-	}
+	defer func() {
+		if err := s.db.Close(); err != nil {
+			log.Error("Ошибка закрытия базы ", err)
+		}
+	}()
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		log.Error("Ошибка сохранения пользователя: ", email, err)
-		return 0, fmt.Errorf("Save user: %w", err)
-	}
-
-	return id, nil
+	return pk, nil
 }
 
 func (s *Storage) User(ctx context.Context, login string) (models.User, error) {
-	stmt, err := s.db.Prepare("SELECT id, email, pass_hash FROM user WHERE id = ?")
-	if err != nil {
-		return models.User{}, fmt.Errorf("Gets user: %w", err)
-	}
-	row := stmt.QueryRowContext(ctx, login)
+	query := `SELECT email, pass_hash FROM users_my WHERE login = $1`
 
 	var user models.User
-
-	err = row.Scan(&user.Id, &user.PassHash, &user.Email)
+	err := s.db.QueryRow(query, login).Scan(&user.PassHash, &user.Email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models.User{}, fmt.Errorf("User: %w", err)
-		}
-		return models.User{}, fmt.Errorf("User: %w", err)
+		return models.User{}, fmt.Errorf("Gets user: %w", err)
 	}
 
 	return user, nil

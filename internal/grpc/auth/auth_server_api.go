@@ -9,8 +9,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log/slog"
 )
+
+//go:generate go run github.com/vektra/mockery/v2@v2.42.3 --all
 
 type Auth interface {
 	RegisterUser(
@@ -35,11 +36,8 @@ func RegisterAuthServerApi(grpc *grpc.Server, auth Auth) {
 
 func (a *AuthServerApi) AuthLogin(
 	ctx context.Context, req *authServer.AuthLoginRequest) (*authServer.AuthLoginResponse, error) {
-	var log *slog.Logger
-	log.With("Init Login logger")
 
 	if !validator.ValidateLoginRequest(req) {
-		log.Warn("Пустые данные")
 		return nil, status.Error(codes.InvalidArgument, "Пустые данные")
 	}
 
@@ -54,11 +52,8 @@ func (a *AuthServerApi) AuthLogin(
 
 func (a *AuthServerApi) AuthRegistration(
 	ctx context.Context, req *authServer.AuthRegistrationRequest) (*authServer.AuthRegistrationResponse, error) {
-	var log *slog.Logger
-	log.With("Init Registration")
 
 	if !validator.ValidatePassword(req) {
-		log.Warn("Пароли не совпадают")
 		return nil, status.Error(codes.InvalidArgument, "Пароли не совпадают")
 	}
 

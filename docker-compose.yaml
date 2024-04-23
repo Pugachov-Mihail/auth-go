@@ -3,7 +3,10 @@ version: "3"
 services:
   auth_mc:
     build: .
-    
+    depends_on:
+      - postgres
+    ports:
+      - "8002:44044"
 
 
   postgres:

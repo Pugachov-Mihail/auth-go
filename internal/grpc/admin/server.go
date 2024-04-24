@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"auth/internal/validator"
+	"auth/internal/validator/base_validate"
 	adminServer "auth/protos/gen/dota_traker.admin.v1"
 	"context"
 	"fmt"
@@ -23,7 +23,7 @@ func (s *serverAdminApi) AdminPermission(
 	var log *slog.Logger
 	log.With("Admin Permission")
 
-	if !validator.ValidatorAdminPermission(req) {
+	if !base_validate.ValidatorAdminPermission(req) {
 		log.Warn("Пустые данные")
 		return nil, fmt.Errorf("Пустые данные")
 	}
@@ -37,7 +37,7 @@ func (s *serverAdminApi) AdminSettingsPanel(
 	var log *slog.Logger
 	log.With("Admin Permission")
 
-	if !validator.ValidatorAdminSetting(req) {
+	if !base_validate.ValidatorAdminSetting(req) {
 		log.Warn("Пустые данные")
 		return nil, fmt.Errorf("Пустые данные")
 	}

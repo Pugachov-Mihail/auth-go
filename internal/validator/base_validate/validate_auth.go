@@ -1,4 +1,4 @@
-package validator
+package base_validate
 
 import authServer "auth/protos/gen/dota_traker.auth.v1"
 

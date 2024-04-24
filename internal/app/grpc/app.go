@@ -3,6 +3,7 @@ package grpcapp
 import (
 	serverAdmin "auth/internal/grpc/admin"
 	serverAuth "auth/internal/grpc/auth"
+	server_reset "auth/internal/grpc/reset"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -20,8 +21,10 @@ func New(log *slog.Logger, port int, authServese serverAuth.Auth) *App {
 	grpcServer := grpc.NewServer()
 	serverAdmin.RegisterServerApi(grpcServer)
 	serverAuth.RegisterAuthServerApi(grpcServer, authServese)
+	server_reset.RegisterResetServerApi(grpcServer)
 
 	reflection.Register(grpcServer)
+
 	return &App{
 		log:        log,
 		grpcServer: grpcServer,

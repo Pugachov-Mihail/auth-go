@@ -25,9 +25,9 @@ const (
 type Auth struct {
 	Log             *slog.Logger
 	TokenTTL        time.Duration
-	usrProvider     UserProvider
-	usrSaver        UserSaver
-	registerNewuser RegisterNewUser
+	UsrProvider     UserProvider
+	UsrSaver        UserSaver
+	registerNewUser RegisterNewUser
 }
 
 type UserSaver interface {
@@ -56,8 +56,8 @@ func New(
 	userProvider UserProvider,
 	tokenTTl time.Duration) *Auth {
 	return &Auth{
-		usrSaver:    userSaver,
-		usrProvider: userProvider,
+		UsrSaver:    userSaver,
+		UsrProvider: userProvider,
 		TokenTTL:    tokenTTl,
 		Log:         log,
 	}
@@ -71,7 +71,7 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string, sec
 
 	log.Info("Login user " + login)
 
-	user, err := a.usrProvider.User(ctx, login)
+	user, err := a.UsrProvider.User(ctx, login)
 
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserNotFound) {
@@ -114,7 +114,7 @@ func (a *Auth) RegisterUser(
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 
-	id, err := a.usrSaver.SaveUser(ctx, log, login, passHash, email, steamId)
+	id, err := a.UsrSaver.SaveUser(ctx, log, login, passHash, email, steamId)
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserExists) {
 			log.Warn("Пользователь существует", err)
@@ -141,7 +141,7 @@ func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
 		slog.Int64("", uid))
 	log.Info("Find roles user " + strconv.FormatInt(uid, 10))
 
-	roles, err := a.usrProvider.RolesUser(ctx, uid)
+	roles, err := a.UsrProvider.RolesUser(ctx, uid)
 
 	if err != nil {
 		return models.Roles{}, fmt.Errorf("%s: %w", Roles, err)

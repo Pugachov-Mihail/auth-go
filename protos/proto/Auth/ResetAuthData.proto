@@ -1,0 +1,32 @@
+syntax="proto3";
+
+package resetAuthData;
+
+option go_package = "dota_traker.reset.v1;reset_auth_data";
+
+service ResetAuthData {
+  rpc ResetPassword (ResetPasswordRequests) returns (ResetResponse);
+  rpc ResetEmail (ResetEmailRequests) returns (ResetResponse);
+  rpc ResetSteamId (ResetSteamIdRequests) returns (ResetResponse);
+}
+
+message ResetPasswordRequests {
+  int64 IdUser = 1;
+  string Password = 2;
+  string Password2 = 3;
+}
+
+message ResetEmailRequests {
+  int64 IdUser = 1;
+  string Email = 2;
+}
+
+message ResetSteamIdRequests {
+  int64 IdUser = 1;
+  int64 SteamId = 2;
+}
+
+message ResetResponse {
+  int64 UserId = 1;
+}
+

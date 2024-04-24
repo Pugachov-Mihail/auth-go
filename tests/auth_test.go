@@ -55,8 +55,8 @@ func TestAuth_LoginUser(t *testing.T) {
 			a := &auth.Auth{
 				Log:         tt.fields.log,
 				TokenTTL:    tt.fields.tokenTTL,
-				usrProvider: userProvider,
-				usrSaver:    userSaver,
+				UsrProvider: userProvider,
+				UsrSaver:    userSaver,
 			}
 			got, err := a.LoginUser(tt.args.ctx, tt.args.login, tt.args.password, tt.args.secret)
 			if (err != nil) != tt.wantErr {
@@ -98,8 +98,8 @@ func TestAuth_RegisterUser(t *testing.T) {
 			a := &auth.Auth{
 				Log:         tt.fields.log,
 				TokenTTL:    tt.fields.tokenTTL,
-				usrProvider: tt.fields.usrProvider,
-				usrSaver:    tt.fields.usrSaver,
+				UsrProvider: tt.fields.usrProvider,
+				UsrSaver:    tt.fields.usrSaver,
 			}
 			got, err := a.RegisterUser(tt.args.ctx, tt.args.login, tt.args.password, tt.args.email, tt.args.steamId)
 			if (err != nil) != tt.wantErr {
@@ -138,8 +138,8 @@ func TestAuth_RolesUser(t *testing.T) {
 			a := &auth.Auth{
 				Log:         tt.fields.log,
 				TokenTTL:    tt.fields.tokenTTL,
-				usrProvider: tt.fields.usrProvider,
-				usrSaver:    tt.fields.usrSaver,
+				UsrProvider: tt.fields.usrProvider,
+				UsrSaver:    tt.fields.usrSaver,
 			}
 			got, err := a.RolesUser(tt.args.ctx, tt.args.uid)
 			if (err != nil) != tt.wantErr {

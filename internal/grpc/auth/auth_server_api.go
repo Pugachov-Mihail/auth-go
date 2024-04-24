@@ -3,7 +3,7 @@ package auth_server
 import (
 	configapp "auth/internal/config"
 	"auth/internal/domain/models"
-	"auth/internal/validator"
+	"auth/internal/validator/base_validate"
 	authServer "auth/protos/gen/dota_traker.auth.v1"
 	"context"
 	"google.golang.org/grpc"
@@ -37,7 +37,7 @@ func RegisterAuthServerApi(grpc *grpc.Server, auth Auth) {
 func (a *AuthServerApi) AuthLogin(
 	ctx context.Context, req *authServer.AuthLoginRequest) (*authServer.AuthLoginResponse, error) {
 
-	if !validator.ValidateLoginRequest(req) {
+	if !base_validate.ValidateLoginRequest(req) {
 		return nil, status.Error(codes.InvalidArgument, "Пустые данные")
 	}
 
@@ -53,7 +53,7 @@ func (a *AuthServerApi) AuthLogin(
 func (a *AuthServerApi) AuthRegistration(
 	ctx context.Context, req *authServer.AuthRegistrationRequest) (*authServer.AuthRegistrationResponse, error) {
 
-	if !validator.ValidatePassword(req) {
+	if !base_validate.ValidatePassword(req) {
 		return nil, status.Error(codes.InvalidArgument, "Пароли не совпадают")
 	}
 

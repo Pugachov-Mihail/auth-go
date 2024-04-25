@@ -92,6 +92,12 @@ func Test_validateEmail(t *testing.T) {
 			want:    false,
 			wantErr: false,
 		},
+		{
+			name:    "case 8",
+			args:    args{email: "te_st@test.ru@test.ru"},
+			want:    false,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

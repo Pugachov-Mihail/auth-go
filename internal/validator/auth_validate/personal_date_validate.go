@@ -17,7 +17,7 @@ type Validate interface {
 }
 
 func validateEmail(email string) (bool, error) {
-	result, err := regexp.MatchString(`^[A-Za-z0-9]*@[A-Za-z0-9-]*\.[A-Za-z]{2,4}$`, email)
+	result, err := regexp.MatchString(`^[A-z0-9]*@[A-z0-9-]*\.[A-z]{2,4}$`, email)
 	if err != nil {
 		return false, fmt.Errorf("ошибка проверки почты")
 	}

@@ -12,10 +12,12 @@ type Reset struct {
 
 type ResetStorage interface {
 	Email(ctx context.Context, email string, uid int64) (uint64, error)
+	Password(ctx context.Context, password string, userId int64) (int64, error)
+	IdSteam(ctx context.Context, steamId int64, userId int64) (int64, error)
 }
 
 func (r *Reset) ResetEmail(ctx context.Context, email string, userId int64) (int64, error) {
-	panic(email)
+	panic(ctx)
 }
 func (r *Reset) ResetPassword(ctx context.Context, password string, userId int64) (int64, error) {
 	panic(password)

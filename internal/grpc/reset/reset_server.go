@@ -27,6 +27,7 @@ func (r *Reset) ResetSteamId(ctx context.Context, req *resetService.ResetSteamId
 	if req.GetSteamId() != 0 && req.GetIdUser() != 0 {
 		return nil, status.Error(codes.InvalidArgument, "Нет данных")
 	}
+
 	uid, err := r.reset.ResetIdSteam(ctx, req.GetSteamId(), req.GetIdUser())
 
 	if err != nil {

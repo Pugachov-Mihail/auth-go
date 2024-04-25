@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"log/slog"
+	"time"
 )
 
 var (
@@ -42,10 +43,25 @@ func (s *Storage) SaveUser(
 	passHash []byte,
 	login string,
 	steamId int64) (int64, error) {
+
+	exists, err := s.UserExists(ctx, email)
+	if err != nil {
+		return 0, err
+	}
+
+	if exists {
+		return 0, fmt.Errorf("пользователь существует")
+	}
+
 	query := `INSERT INTO users_my (email, pass_hash, steam_id, login) VALUES ($1,$2,$3,$4) RETURNING id;`
 
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
 	var pk int64
-	err := s.db.QueryRow(query, email, passHash, steamId, login).Scan(&pk)
+
+	err = s.db.QueryRowContext(dbCtx, query, email, passHash, steamId, login).Scan(&pk)
+	defer s.db.Close()
 	if err != nil {
 		return 0, fmt.Errorf("save user: %w", err)
 	}
@@ -62,8 +78,13 @@ func (s *Storage) SaveUser(
 func (s *Storage) User(ctx context.Context, login string) (models.User, error) {
 	query := `SELECT email, pass_hash FROM users_my WHERE login = $1`
 
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
 	var user models.User
-	err := s.db.QueryRow(query, login).Scan(&user.PassHash, &user.Email)
+
+	err := s.db.QueryRowContext(dbCtx, query, login).Scan(&user.PassHash, &user.Email)
+	defer s.db.Close()
 	if err != nil {
 		return models.User{}, fmt.Errorf("Gets user: %w", err)
 	}
@@ -86,7 +107,25 @@ func (s *Storage) RolesUser(ctx context.Context, userId int64) (models.Roles, er
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Roles{}, fmt.Errorf("Roles: %w", err)
 		}
-		return models.Roles{}, fmt.Errorf("Roles: %w", err)
+		return models.Roles{}, fmt.Errorf("roles: %w", err)
 	}
 	return roles, nil
+}
+
+func (s *Storage) UserExists(ctx context.Context, email string) (bool, error) {
+	query := `SELECT * FROM users_my WHERE email = ?`
+
+	var user models.User
+
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	if err := s.db.QueryRowContext(dbCtx, query, email).Scan(&user.Email); err != nil {
+		return false, fmt.Errorf("exists user error: %w", err)
+	}
+	defer s.db.Close()
+	if email == user.Email {
+		return true, nil
+	}
+	return false, nil
 }

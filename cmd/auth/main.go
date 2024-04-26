@@ -14,7 +14,7 @@ func main() {
 	log := configapp.SetupLoger(cfg.Env)
 	log.Debug("Init app")
 
-	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.GRPC.TimeOut)
+	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.GRPC.TimeOut, cfg)
 
 	go application.GRPC.MustRun()
 

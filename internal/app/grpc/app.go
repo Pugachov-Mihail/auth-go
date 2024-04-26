@@ -22,7 +22,6 @@ func New(log *slog.Logger, port int, authServese serverAuth.Auth) *App {
 	serverAdmin.RegisterServerApi(grpcServer)
 	serverAuth.RegisterAuthServerApi(grpcServer, authServese)
 	server_reset.RegisterResetServerApi(grpcServer)
-
 	reflection.Register(grpcServer)
 
 	return &App{

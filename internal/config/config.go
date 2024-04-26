@@ -2,11 +2,10 @@ package configapp
 
 import (
 	"flag"
+	"github.com/ilyakaznacheev/cleanenv"
 	"log/slog"
 	"os"
 	"time"
-
-	"github.com/ilyakaznacheev/cleanenv"
 )
 
 const (
@@ -40,6 +39,10 @@ func MustLoad() *Config {
 		panic("Пустой файл конфигурации")
 	}
 
+	return MustLoadByPath(fetchPath)
+}
+
+func MustLoadByPath(fetchPath string) *Config {
 	if _, err := os.Stat(fetchPath); os.IsNotExist(err) {
 		panic("Не существует файл конфигурации: " + fetchPath)
 	}

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	configapp "auth/internal/config"
 	"auth/internal/domain/models"
 	"auth/internal/service/lib/jwt"
 	auth_storage "auth/internal/storage/auth"
@@ -28,6 +29,8 @@ type Auth struct {
 	UsrProvider     UserProvider
 	UsrSaver        UserSaver
 	registerNewUser RegisterNewUser
+	Secret          string
+	Cfg             configapp.Config
 }
 
 type UserSaver interface {
@@ -54,12 +57,15 @@ func New(
 	log *slog.Logger,
 	userSaver UserSaver,
 	userProvider UserProvider,
-	tokenTTl time.Duration) *Auth {
+	tokenTTl time.Duration,
+	cfg *configapp.Config,
+) *Auth {
 	return &Auth{
 		UsrSaver:    userSaver,
 		UsrProvider: userProvider,
 		TokenTTL:    tokenTTl,
 		Log:         log,
+		Cfg:         *cfg,
 	}
 }
 
@@ -69,29 +75,31 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string, sec
 		slog.String("Auth ", Login),
 		slog.String("login", login))
 
-	log.Info("Login user " + login)
+	log.Info("Пользователь " + login + "залогинился")
 
 	user, err := a.UsrProvider.User(ctx, login)
 
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserNotFound) {
-			a.Log.Warn("Пользователь не найден", err)
+			a.Log.Warn("Пользователь не найден;", err)
 
 			return "", fmt.Errorf("%s: %s", Login, ErrInvalid)
 		}
-		a.Log.Error("Ошибка получения пользователя", err)
+		a.Log.Error("Ошибка получения пользователя;", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(password), user.PassHash); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
 		a.Log.Warn(ErrInvalid, err)
 		return "", fmt.Errorf("%s: %s", Login, ErrInvalid)
 	}
-	token, err := jwt.NewToken(user, secret, a.TokenTTL)
+
+	token, err := jwt.NewToken(user, a.Cfg.Secret, a.TokenTTL)
 	if err != nil {
-		a.Log.With("Ошибка генерации токена", err)
+		a.Log.With("Ошибка генерации токена;", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
+
 	return token, nil
 }
 
@@ -106,21 +114,19 @@ func (a *Auth) RegisterUser(
 		slog.String("Auth ", Register),
 		slog.String("login", login))
 
-	log.Info("Registering user " + login)
-
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Error("Ошибка генерации хеша пароля", err)
+		log.Error("Ошибка генерации хеша пароля;", err)
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 
 	id, err := a.UsrSaver.SaveUser(ctx, log, login, passHash, email, steamId)
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserExists) {
-			log.Warn("Пользователь существует", err)
+			log.Warn("Пользователь существует;", err)
 			return 0, fmt.Errorf("%s: %w", Register, err)
 		}
-		log.Error("Ошибка сохранения пользователя", err)
+		log.Error("Ошибка сохранения пользователя;", err)
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 

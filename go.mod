@@ -3,6 +3,7 @@ module auth
 go 1.21.3
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/lib/pq v1.10.9

@@ -3,6 +3,7 @@ package server_reset
 import (
 	resetService "auth/protos/gen/dota_traker.reset.v1"
 	"context"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -35,6 +36,10 @@ func (r *Reset) ResetSteamId(ctx context.Context, req *resetService.ResetSteamId
 	}
 
 	return &resetService.ResetResponse{UserId: uid}, nil
+}
+
+func ads() error {
+	return fmt.Errorf("dasasdasd")
 }
 
 func (r *Reset) ResetEmail(ctx context.Context, req *resetService.ResetEmailRequests) (*resetService.ResetResponse, error) {

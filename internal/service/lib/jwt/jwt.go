@@ -2,21 +2,23 @@ package jwt
 
 import (
 	"auth/internal/domain/models"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )
 
-func NewToken(user models.User, app string, duration time.Duration) (string, error) {
+func NewToken(user models.User, secret string, duration time.Duration) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
-	clims := token.Claims.(jwt.MapClaims)
-	clims["uid"] = user.Id
-	clims["email"] = user.Email
-	clims["ext"] = time.Now().Add(duration).Unix()
+	claims := token.Claims.(jwt.MapClaims)
+	claims["uid"] = user.Id
+	claims["email"] = user.Email
+	claims["ext"] = time.Now().Add(duration).Unix()
 
-	tokenSecret, err := token.SignedString([]byte(app))
+	tokenSecret, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w", err)
 	}
+
 	return tokenSecret, nil
 }

@@ -1,8 +1,8 @@
 package auth_server
 
 import (
-	configapp "auth/internal/config"
 	"auth/internal/domain/models"
+	"auth/internal/validator/auth_validate"
 	"auth/internal/validator/base_validate"
 	authServer "auth/protos/gen/dota_traker.auth.v1"
 	"context"
@@ -26,8 +26,7 @@ type Auth interface {
 
 type AuthServerApi struct {
 	authServer.UnimplementedAuthServerServer
-	auth   Auth
-	secret configapp.Config
+	auth Auth
 }
 
 func RegisterAuthServerApi(grpc *grpc.Server, auth Auth) {
@@ -36,12 +35,11 @@ func RegisterAuthServerApi(grpc *grpc.Server, auth Auth) {
 
 func (a *AuthServerApi) AuthLogin(
 	ctx context.Context, req *authServer.AuthLoginRequest) (*authServer.AuthLoginResponse, error) {
-
 	if !base_validate.ValidateLoginRequest(req) {
 		return nil, status.Error(codes.InvalidArgument, "Пустые данные")
 	}
 
-	token, err := a.auth.LoginUser(ctx, req.GetLogin(), req.GetPassword(), a.secret.Secret)
+	token, err := a.auth.LoginUser(ctx, req.GetLogin(), req.GetPassword(), "add")
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Ошибка авторизации")
@@ -57,7 +55,12 @@ func (a *AuthServerApi) AuthRegistration(
 		return nil, status.Error(codes.InvalidArgument, "Пароли не совпадают")
 	}
 
+	if ok, _ := auth_validate.ValidateEmail(req.GetEmail()); !ok {
+		return nil, status.Error(codes.InvalidArgument, "Некорректная почта")
+	}
+
 	id, err := a.auth.RegisterUser(ctx, req.GetLogin(), req.GetPassword(), req.GetEmail(), req.GetSteamId())
+
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "Ошибка создания пользователя")
 	}

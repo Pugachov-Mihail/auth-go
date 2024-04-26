@@ -30,7 +30,7 @@ func New(storagePath configapp.ConfigDB) (*Storage, error) {
 
 	if err = db.Ping(); err != nil {
 		log.Fatal("Ошибка базы ", err)
-		return nil, fmt.Errorf("%s: %w", "postgre", err)
+		return nil, fmt.Errorf("%s: %v", "postgre", err)
 	}
 
 	return &Storage{db: db}, nil
@@ -61,30 +61,24 @@ func (s *Storage) SaveUser(
 	var pk int64
 
 	err = s.db.QueryRowContext(dbCtx, query, email, passHash, steamId, login).Scan(&pk)
-	defer s.db.Close()
+
 	if err != nil {
 		return 0, fmt.Errorf("save user: %w", err)
 	}
-
-	defer func() {
-		if err := s.db.Close(); err != nil {
-			log.Error("Ошибка закрытия базы ", err)
-		}
-	}()
 
 	return pk, nil
 }
 
 func (s *Storage) User(ctx context.Context, login string) (models.User, error) {
-	query := `SELECT email, pass_hash FROM users_my WHERE login = $1`
+	query := `SELECT email, pass_hash FROM users_my WHERE login = $1;`
 
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
 	var user models.User
 
-	err := s.db.QueryRowContext(dbCtx, query, login).Scan(&user.PassHash, &user.Email)
-	defer s.db.Close()
+	err := s.db.QueryRowContext(dbCtx, query, login).Scan(&user.Email, &user.PassHash)
+
 	if err != nil {
 		return models.User{}, fmt.Errorf("Gets user: %w", err)
 	}
@@ -93,7 +87,7 @@ func (s *Storage) User(ctx context.Context, login string) (models.User, error) {
 }
 
 func (s *Storage) RolesUser(ctx context.Context, userId int64) (models.Roles, error) {
-	stmt, err := s.db.Prepare("SELECT roles_name, roles_flag FROM roles where user_id = ?")
+	stmt, err := s.db.Prepare("SELECT roles_name, roles_flag FROM roles where user_id = ?;")
 	if err != nil {
 		return models.Roles{}, fmt.Errorf("Gets user: %w", err)
 	}
@@ -113,7 +107,7 @@ func (s *Storage) RolesUser(ctx context.Context, userId int64) (models.Roles, er
 }
 
 func (s *Storage) UserExists(ctx context.Context, email string) (bool, error) {
-	query := `SELECT * FROM users_my WHERE email = ?`
+	query := `SELECT email FROM users_my WHERE email = $1;`
 
 	var user models.User
 
@@ -121,11 +115,14 @@ func (s *Storage) UserExists(ctx context.Context, email string) (bool, error) {
 	defer cancel()
 
 	if err := s.db.QueryRowContext(dbCtx, query, email).Scan(&user.Email); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
 		return false, fmt.Errorf("exists user error: %w", err)
 	}
-	defer s.db.Close()
+
 	if email == user.Email {
-		return true, nil
+		return true, ErrorUserExists
 	}
 	return false, nil
 }

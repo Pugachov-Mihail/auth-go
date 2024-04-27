@@ -8,6 +8,7 @@ service AuthServer {
   rpc AuthLogin(AuthLoginRequest) returns (AuthLoginResponse);
   rpc AuthRegistration(AuthRegistrationRequest) returns (AuthRegistrationResponse);
   rpc AuthRoles(AuthRolesRequest) returns (AuthRolesResponse);
+  rpc AuthAccessPermission(AuthLoginResponse) returns (AccessPermissionResponse);
 }
 
 message AuthRegistrationRequest {
@@ -38,4 +39,8 @@ message AuthRolesResponse {
 
 message AuthRolesRequest {
   int64 UserId = 1;
+}
+
+message AccessPermissionResponse {
+  bool AccessPermission = 1;
 }

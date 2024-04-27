@@ -126,3 +126,7 @@ func (s *Storage) UserExists(ctx context.Context, email string) (bool, error) {
 	}
 	return false, nil
 }
+
+func (s *Storage) PermissionAccess(ctx context.Context, token string) (string, error) {
+	return "", nil
+}

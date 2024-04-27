@@ -22,6 +22,7 @@ type Auth interface {
 		steamId int64) (int64, error)
 	LoginUser(ctx context.Context, login string, password string, secret string) (string, error)
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
+	AccessPermission(ctx context.Context, token string) (bool, error)
 }
 
 type AuthServerApi struct {
@@ -80,4 +81,19 @@ func (a *AuthServerApi) AuthRoles(
 	}
 
 	return &authServer.AuthRolesResponse{RolesFlag: roles.RolesFlag, RoleName: roles.RolesName}, nil
+}
+
+func (a *AuthServerApi) AuthAccessPermission(
+	ctx context.Context,
+	req *authServer.AuthLoginResponse) (*authServer.AccessPermissionResponse, error) {
+	if req.GetToken() == "" {
+		return nil, status.Error(codes.InvalidArgument, "Отсутствует токен")
+	}
+
+	permission, err := a.auth.AccessPermission(ctx, req.GetToken())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Отсутствует доступ")
+	}
+
+	return &authServer.AccessPermissionResponse{AccessPermission: permission}, nil
 }

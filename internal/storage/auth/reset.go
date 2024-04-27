@@ -9,7 +9,7 @@ type StorageReset struct {
 	db *sql.DB
 }
 
-func (s *StorageReset) Email(ctx context.Context, email string, uid int64) (uint64, error) {
+func (s *StorageReset) Email(ctx context.Context, email string, uid int64) (int64, error) {
 	panic(ctx)
 }
 func (s *StorageReset) Password(ctx context.Context, password string, userId int64) (int64, error) {

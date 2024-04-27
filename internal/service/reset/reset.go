@@ -2,6 +2,7 @@ package reset_service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 )
 
@@ -11,17 +12,35 @@ type Reset struct {
 }
 
 type ResetStorage interface {
-	Email(ctx context.Context, email string, uid int64) (uint64, error)
+	Email(ctx context.Context, email string, uid int64) (int64, error)
 	Password(ctx context.Context, password string, userId int64) (int64, error)
 	IdSteam(ctx context.Context, steamId int64, userId int64) (int64, error)
 }
 
 func (r *Reset) ResetEmail(ctx context.Context, email string, userId int64) (int64, error) {
-	panic(ctx)
+	idUser, err := r.resetStorage.Email(ctx, email, userId)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка изменения e-mail: %w", err)
+	}
+	return idUser, nil
 }
+
 func (r *Reset) ResetPassword(ctx context.Context, password string, userId int64) (int64, error) {
-	panic(password)
+	idUser, err := r.resetStorage.Password(ctx, password, userId)
+
+	if err != nil {
+		return 0, fmt.Errorf("ошибка изменения пароля: %w", err)
+	}
+
+	return idUser, nil
 }
+
 func (r *Reset) ResetIdSteam(ctx context.Context, steamId int64, userId int64) (int64, error) {
-	panic(steamId)
+	_, err := r.resetStorage.IdSteam(ctx, steamId, userId)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка изменения steam id: %w ", err)
+	}
+	//TODO навесить кафку что бы все мс связанные со стим айди были вкурсе
+
+	return 0, err
 }

@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	configapp "auth/internal/config"
 	"auth/internal/domain/models"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
@@ -21,4 +22,18 @@ func NewToken(user models.User, secret string, duration time.Duration) (string, 
 	}
 
 	return tokenSecret, nil
+}
+
+func ValidateToken(token string, st configapp.Config) (string, error) {
+	ken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, err := token.Method.(*jwt.SigningMethodHMAC); !err {
+			return nil, fmt.Errorf("cyka")
+		}
+		return []byte(st.Secret), nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("parse token error: %w", err)
+	}
+	fmt.Println(ken)
+	return ken.Raw, nil
 }

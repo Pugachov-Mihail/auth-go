@@ -20,6 +20,7 @@ const (
 	Register   = "Register"
 	Login      = "Login"
 	Roles      = "Roles"
+	Permission = "Permission"
 	ErrInvalid = "invalid credentials"
 )
 
@@ -46,6 +47,7 @@ type UserSaver interface {
 type UserProvider interface {
 	User(ctx context.Context, login string) (models.User, error)
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
+	PermissionAccess(ctx context.Context, token string) (string, error)
 }
 
 type RegisterNewUser interface {
@@ -155,4 +157,19 @@ func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
 	log.Info("Проверка ролей пользователя " + strconv.FormatInt(uid, 10))
 
 	return roles, err
+}
+
+func (a *Auth) AccessPermission(ctx context.Context, token string) (bool, error) {
+	log := a.Log.With(slog.String("Auth", Permission))
+
+	//TODO Реализовать проверку токена в бд, после проверка токена в бд проверить валидный ли он по времени если нет выписать новый
+	permission, err := a.UsrProvider.PermissionAccess(ctx, token)
+	if err != nil {
+		log.Warn("не обработанный токен")
+		return false, fmt.Errorf("ошибка обработки токена: %w", err)
+	}
+	if permission == token {
+		return true, nil
+	}
+	return false, fmt.Errorf("не обработанный токен")
 }

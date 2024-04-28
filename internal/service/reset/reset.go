@@ -17,9 +17,20 @@ type ResetStorage interface {
 	IdSteam(ctx context.Context, steamId int64, userId int64) (int64, error)
 }
 
-func (r *Reset) ResetEmail(ctx context.Context, email string, userId int64) (int64, error) {
+func New(
+	log *slog.Logger,
+	resetStorage ResetStorage,
+) *Reset {
+	return &Reset{
+		log:          log,
+		resetStorage: resetStorage,
+	}
+}
+
+func (r *Reset) ResetEmailStore(ctx context.Context, email string, userId int64) (int64, error) {
 	idUser, err := r.resetStorage.Email(ctx, email, userId)
 	if err != nil {
+		r.log.Error("ошибка изменения e-mail: ", err)
 		return 0, fmt.Errorf("ошибка изменения e-mail: %w", err)
 	}
 	return idUser, nil

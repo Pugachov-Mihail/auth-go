@@ -20,9 +20,9 @@ type Auth interface {
 		password string,
 		email string,
 		steamId int64) (int64, error)
-	LoginUser(ctx context.Context, login string, password string, secret string) (string, error)
+	LoginUser(ctx context.Context, login string, password string) (string, error)
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
-	AccessPermission(ctx context.Context, token string) (bool, error)
+	AccessPermission(ctx context.Context, token string) (string, error)
 }
 
 type AuthServerApi struct {
@@ -40,7 +40,7 @@ func (a *AuthServerApi) AuthLogin(
 		return nil, status.Error(codes.InvalidArgument, "Пустые данные")
 	}
 
-	token, err := a.auth.LoginUser(ctx, req.GetLogin(), req.GetPassword(), "add")
+	token, err := a.auth.LoginUser(ctx, req.GetLogin(), req.GetPassword())
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Ошибка авторизации")

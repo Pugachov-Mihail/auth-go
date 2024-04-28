@@ -42,5 +42,5 @@ message AuthRolesRequest {
 }
 
 message AccessPermissionResponse {
-  bool AccessPermission = 1;
+  string AccessPermission = 1;
 }

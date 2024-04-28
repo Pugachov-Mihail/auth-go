@@ -24,7 +24,7 @@ func NewToken(user models.User, secret string, duration time.Duration) (string, 
 	return tokenSecret, nil
 }
 
-func ValidateToken(token string, st configapp.Config) (string, error) {
+func ValidateToken(token string, st configapp.Config) bool {
 	ken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, err := token.Method.(*jwt.SigningMethodHMAC); !err {
 			return nil, fmt.Errorf("cyka")
@@ -32,8 +32,21 @@ func ValidateToken(token string, st configapp.Config) (string, error) {
 		return []byte(st.Secret), nil
 	})
 	if err != nil {
-		return "", fmt.Errorf("parse token error: %w", err)
+		return false
 	}
-	fmt.Println(ken)
-	return ken.Raw, nil
+
+	claim := ken.Claims.(jwt.MapClaims)
+	tokenTime := claim["ext"]
+
+	return deltaTime(tokenTime.(float64))
+}
+
+func deltaTime(tt float64) bool {
+	ct := time.Now().Unix()
+
+	if float64(ct) > tt {
+		return true
+	}
+	return false
+
 }

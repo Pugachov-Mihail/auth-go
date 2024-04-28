@@ -14,10 +14,11 @@ const (
 )
 
 type Config struct {
-	Env         string   `yaml:"env" env-required:"dev"`
-	StoragePath ConfigDB `yaml:"storage_path" env-required:"true"`
-	GRPC        GRPCConf `yaml:"grpc" env-required:"true"`
-	Secret      string   `yaml:"secret"`
+	Env         string        `yaml:"env" env-required:"dev"`
+	StoragePath ConfigDB      `yaml:"storage_path" env-required:"true"`
+	GRPC        GRPCConf      `yaml:"grpc" env-required:"true"`
+	Secret      string        `yaml:"secret"`
+	TokenTTL    time.Duration `yaml:"tokenTTL"`
 }
 
 type GRPCConf struct {
@@ -72,11 +73,11 @@ func SetupLoger(env string) *slog.Logger {
 	var log *slog.Logger
 
 	switch env {
-	case "dev":
+	case envDev:
 		log = slog.New(
 			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
 		)
-	case "prod":
+	case envProd:
 		log = slog.New(
 			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
 		)

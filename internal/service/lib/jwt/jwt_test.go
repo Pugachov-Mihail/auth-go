@@ -31,7 +31,7 @@ func TestNewToken(t *testing.T) {
 					SteamId:  gofakeit.Int64(),
 				},
 				secret:   "app",
-				duration: time.Second * 60,
+				duration: time.Microsecond * 1,
 				st: configapp.Config{
 					Secret: "app",
 				},
@@ -108,10 +108,9 @@ func TestNewToken(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotEmpty(t, got)
 
-			token, err := ValidateToken(got, tt.args.st)
+			token := ValidateToken(got, tt.args.st)
 			require.NoError(t, err)
-			assert.NotEmpty(t, token)
-			assert.Equal(t, got, token)
+			assert.False(t, token)
 		})
 	}
 }

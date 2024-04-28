@@ -4,6 +4,7 @@ import (
 	serverAdmin "auth/internal/grpc/admin"
 	serverAuth "auth/internal/grpc/auth"
 	server_reset "auth/internal/grpc/reset"
+	reset_service "auth/internal/service/reset"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -17,11 +18,12 @@ type App struct {
 	port       int
 }
 
-func New(log *slog.Logger, port int, authServese serverAuth.Auth) *App {
+func New(log *slog.Logger, port int, authServese serverAuth.Auth, resetService *reset_service.Reset) *App {
 	grpcServer := grpc.NewServer()
+
 	serverAdmin.RegisterServerApi(grpcServer)
 	serverAuth.RegisterAuthServerApi(grpcServer, authServese)
-	server_reset.RegisterResetServerApi(grpcServer)
+	server_reset.RegisterResetServerApi(grpcServer, resetService)
 	reflection.Register(grpcServer)
 
 	return &App{

@@ -27,7 +27,15 @@ func New(storagePath configapp.ConfigDB) (*StorageReset, error) {
 }
 
 func (s *StorageReset) Email(ctx context.Context, email string, uid int64) (int64, error) {
-	panic(ctx)
+	query := `SELECT id FROM users_my WHERE id=5;`
+
+	var user uint64
+
+	err := s.db.QueryRowContext(ctx, query).Scan(&user)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка смены почты: %w ", err)
+	}
+	return int64(user), nil
 }
 func (s *StorageReset) Password(ctx context.Context, password string, userId int64) (int64, error) {
 	panic(ctx)

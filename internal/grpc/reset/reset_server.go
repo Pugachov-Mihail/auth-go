@@ -24,7 +24,7 @@ func RegisterResetServerApi(grpc *grpc.Server, storage ResetStorage) {
 }
 
 func (r *Reset) ResetSteamId(ctx context.Context, req *resetService.ResetSteamIdRequests) (*resetService.ResetResponse, error) {
-	if req.GetSteamId() != 0 && req.GetIdUser() != 0 {
+	if req.GetSteamId() != 0 || req.GetIdUser() != 0 {
 		return nil, status.Error(codes.InvalidArgument, "Нет данных")
 	}
 
@@ -38,7 +38,7 @@ func (r *Reset) ResetSteamId(ctx context.Context, req *resetService.ResetSteamId
 }
 
 func (r *Reset) ResetEmail(ctx context.Context, req *resetService.ResetEmailRequests) (*resetService.ResetResponse, error) {
-	if req.GetEmail() != "" && req.GetIdUser() != 0 {
+	if req.GetEmail() == "" || req.GetIdUser() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Нет данных")
 	}
 
@@ -51,7 +51,7 @@ func (r *Reset) ResetEmail(ctx context.Context, req *resetService.ResetEmailRequ
 }
 
 func (r *Reset) ResetPassword(ctx context.Context, req *resetService.ResetPasswordRequests) (*resetService.ResetResponse, error) {
-	if req.GetPassword() != "" && req.GetPassword2() != "" {
+	if req.GetPassword() != "" || req.GetPassword2() != "" {
 		return nil, status.Error(codes.InvalidArgument, "Нет данных")
 	}
 

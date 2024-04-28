@@ -70,14 +70,14 @@ func (s *Storage) SaveUser(
 }
 
 func (s *Storage) User(ctx context.Context, login string) (models.User, error) {
-	query := `SELECT email, pass_hash FROM users_my WHERE login = $1;`
+	query := `SELECT id, email, pass_hash FROM users_my WHERE login = $1;`
 
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
 	var user models.User
 
-	err := s.db.QueryRowContext(dbCtx, query, login).Scan(&user.Email, &user.PassHash)
+	err := s.db.QueryRowContext(dbCtx, query, login).Scan(&user.Id, &user.Email, &user.PassHash)
 
 	if err != nil {
 		return models.User{}, fmt.Errorf("Gets user: %w", err)
@@ -127,6 +127,48 @@ func (s *Storage) UserExists(ctx context.Context, email string) (bool, error) {
 	return false, nil
 }
 
-func (s *Storage) PermissionAccess(ctx context.Context, token string) (string, error) {
-	return "", nil
+func (s *Storage) PermissionAccess(ctx context.Context, token string) (models.User, error) {
+	query := `SELECT id, email FROM users_my WHERE id=$1;`
+	userId := `SELECT user_id FROM access_token WHERE token=$1;`
+
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	var user models.User
+
+	if err := s.db.QueryRowContext(dbCtx, userId, token).Scan(&user.Id); err != nil {
+		return models.User{}, fmt.Errorf("ошибка получения пользователя")
+	}
+
+	if err := s.db.QueryRowContext(dbCtx, query, user.Id).Scan(&user.Id, &user.Email); err != nil {
+		return models.User{}, fmt.Errorf("ошибка получения пользователя")
+	}
+
+	return user, nil
+}
+
+func (s *Storage) SaveToken(ctx context.Context, token string, id int64) error {
+	query := `INSERT INTO access_token(user_id, token) VALUES ($1, $2);`
+
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	err := s.db.QueryRowContext(dbCtx, query, id, token)
+	if err != nil {
+		return fmt.Errorf("ошибка сохранения токена")
+	}
+	return nil
+}
+
+func (s *Storage) RefreshToken(ctx context.Context, tokenNew string, tokenOld string) error {
+	query := `UPDATE access_token SET token=$1 WHERE token = $2;`
+
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	err := s.db.QueryRowContext(dbCtx, query, tokenNew, tokenOld)
+	if err != nil {
+		return fmt.Errorf("ошибка обновления токена")
+	}
+	return nil
+
 }

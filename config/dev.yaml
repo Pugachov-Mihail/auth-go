@@ -10,4 +10,5 @@ grpc:
   timeout: 1h
 
 secret: "add"
+tokenTTL: 1h
   

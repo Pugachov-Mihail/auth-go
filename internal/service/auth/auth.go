@@ -30,7 +30,7 @@ type Auth struct {
 	UsrProvider     UserProvider
 	UsrSaver        UserSaver
 	registerNewUser RegisterNewUser
-	Secret          string
+	tokenSaver      TokenSaver
 	Cfg             configapp.Config
 }
 
@@ -47,7 +47,12 @@ type UserSaver interface {
 type UserProvider interface {
 	User(ctx context.Context, login string) (models.User, error)
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
-	PermissionAccess(ctx context.Context, token string) (string, error)
+	PermissionAccess(ctx context.Context, token string) (models.User, error)
+}
+
+type TokenSaver interface {
+	SaveToken(ctx context.Context, token string, id int64) error
+	RefreshToken(ctx context.Context, tokenNew string, tokenOld string) error
 }
 
 type RegisterNewUser interface {
@@ -71,7 +76,7 @@ func New(
 	}
 }
 
-func (a *Auth) LoginUser(ctx context.Context, login string, password string, secret string) (string, error) {
+func (a *Auth) LoginUser(ctx context.Context, login string, password string) (string, error) {
 
 	log := a.Log.With(
 		slog.String("Auth ", Login),
@@ -100,6 +105,11 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string, sec
 	if err != nil {
 		a.Log.With("Ошибка генерации токена;", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
+	}
+
+	err = a.tokenSaver.SaveToken(ctx, token, user.Id)
+	if err != nil {
+		return "", fmt.Errorf("ошибка сохранения токена")
 	}
 
 	return token, nil
@@ -159,17 +169,25 @@ func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
 	return roles, err
 }
 
-func (a *Auth) AccessPermission(ctx context.Context, token string) (bool, error) {
+func (a *Auth) AccessPermission(ctx context.Context, token string) (string, error) {
 	log := a.Log.With(slog.String("Auth", Permission))
 
-	//TODO Реализовать проверку токена в бд, после проверка токена в бд проверить валидный ли он по времени если нет выписать новый
-	permission, err := a.UsrProvider.PermissionAccess(ctx, token)
+	user, err := a.UsrProvider.PermissionAccess(ctx, token)
 	if err != nil {
 		log.Warn("не обработанный токен")
-		return false, fmt.Errorf("ошибка обработки токена: %w", err)
+		return "", fmt.Errorf("ошибка обработки токена: %w", err)
 	}
-	if permission == token {
-		return true, nil
+
+	if jwt.ValidateToken(token, a.Cfg) {
+		return token, nil
 	}
-	return false, fmt.Errorf("не обработанный токен")
+
+	tokenNew, err := jwt.NewToken(user, a.Cfg.Secret, a.TokenTTL)
+
+	err = a.tokenSaver.RefreshToken(ctx, tokenNew, token)
+	if err != nil {
+		return "", fmt.Errorf("ошибка обновления токена: %w", err)
+	}
+
+	return tokenNew, nil
 }

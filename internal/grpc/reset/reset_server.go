@@ -14,13 +14,13 @@ type Reset struct {
 }
 
 type ResetStorage interface {
-	ResetEmail(ctx context.Context, email string, userId int64) (int64, error)
 	ResetPassword(ctx context.Context, password string, userId int64) (int64, error)
 	ResetIdSteam(ctx context.Context, steamId int64, userId int64) (int64, error)
+	ResetEmailStore(ctx context.Context, email string, userId int64) (int64, error)
 }
 
-func RegisterResetServerApi(grpc *grpc.Server) {
-	resetService.RegisterResetAuthDataServer(grpc, &Reset{})
+func RegisterResetServerApi(grpc *grpc.Server, storage ResetStorage) {
+	resetService.RegisterResetAuthDataServer(grpc, &Reset{reset: storage})
 }
 
 func (r *Reset) ResetSteamId(ctx context.Context, req *resetService.ResetSteamIdRequests) (*resetService.ResetResponse, error) {
@@ -42,7 +42,7 @@ func (r *Reset) ResetEmail(ctx context.Context, req *resetService.ResetEmailRequ
 		return nil, status.Error(codes.InvalidArgument, "Нет данных")
 	}
 
-	uid, err := r.reset.ResetEmail(ctx, req.GetEmail(), req.GetIdUser())
+	uid, err := r.reset.ResetEmailStore(ctx, req.GetEmail(), req.GetIdUser())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Ошибка изменения почты")
 	}

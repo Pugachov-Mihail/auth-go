@@ -23,8 +23,8 @@ type Storage struct {
 }
 
 func New(storagePath configapp.ConfigDB) (*Storage, error) {
-	connDb := "postgres://" + storagePath.UserDb + ":" + storagePath.PassDb + "@" + storagePath.Host +
-		":" + storagePath.PortDb + "/" + storagePath.DbName + "?sslmode=disable"
+	connDb := fmt.Sprintf("postgres://" + storagePath.UserDb + ":" + storagePath.PassDb + "@" + storagePath.Host +
+		":" + storagePath.PortDb + "/" + storagePath.DbName + "?sslmode=disable")
 
 	db, err := sql.Open("postgres", connDb)
 

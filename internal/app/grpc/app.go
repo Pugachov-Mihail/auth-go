@@ -36,7 +36,7 @@ func New(log *slog.Logger, port int, authServese serverAuth.Auth, resetService *
 func (a *App) Run() error {
 	log := a.log.With("Auth service Running", a.port)
 
-	l, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", a.port))
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 
 	if err != nil {
 		log.Error("Error Run Auth service")

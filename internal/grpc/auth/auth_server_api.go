@@ -52,12 +52,12 @@ func (a *AuthServerApi) AuthLogin(
 func (a *AuthServerApi) AuthRegistration(
 	ctx context.Context, req *authServer.AuthRegistrationRequest) (*authServer.AuthRegistrationResponse, error) {
 
-	if !base_validate.ValidatePassword(req) {
-		return nil, status.Error(codes.InvalidArgument, "Пароли не совпадают")
-	}
-
 	if ok, _ := auth_validate.ValidateEmail(req.GetEmail()); !ok {
 		return nil, status.Error(codes.InvalidArgument, "Некорректная почта")
+	}
+
+	if !base_validate.ValidatePassword(req) {
+		return nil, status.Error(codes.InvalidArgument, "Пароли не совпадают")
 	}
 
 	id, err := a.auth.RegisterUser(ctx, req.GetLogin(), req.GetPassword(), req.GetEmail(), req.GetSteamId())

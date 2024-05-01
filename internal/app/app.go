@@ -22,7 +22,7 @@ func New(log *slog.Logger, port int, storagePath configapp.ConfigDB, tokenTT tim
 		panic(err)
 	}
 
-	authService := auth.New(log, storage, storage, tokenTT, cfg)
+	authService := auth.New(log, storage, storage, storage, tokenTT, cfg)
 	resetService := resetservice.New(log, resetStorage)
 	grpcAuth := grpcapp.New(log, port, authService, resetService)
 

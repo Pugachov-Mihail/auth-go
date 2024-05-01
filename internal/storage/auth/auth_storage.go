@@ -147,17 +147,19 @@ func (s *Storage) PermissionAccess(ctx context.Context, token string) (models.Us
 	return user, nil
 }
 
-func (s *Storage) SaveToken(ctx context.Context, token string, id int64) error {
-	query := `INSERT INTO access_token(user_id, token) VALUES ($1, $2);`
+func (s *Storage) SaveToken(ctx context.Context, token string, id int64) (int64, error) {
+	query := `INSERT INTO access_token (user_id, token) VALUES ($1, $2) RETURNING user_id;`
 
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	err := s.db.QueryRowContext(dbCtx, query, id, token)
+	var user models.User
+
+	err := s.db.QueryRowContext(dbCtx, query, id, token).Scan(&user.Id)
 	if err != nil {
-		return fmt.Errorf("ошибка сохранения токена")
+		return 0, fmt.Errorf("ошибка сохранения токена")
 	}
-	return nil
+	return user.Id, nil
 }
 
 func (s *Storage) RefreshToken(ctx context.Context, tokenNew string, tokenOld string) error {

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestRegisterLogin(t *testing.T) {
@@ -34,6 +35,8 @@ func TestRegisterLogin(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	loginTime := time.Now()
+
 	tokenString := respLogin.GetToken()
 
 	require.NotEmpty(t, tokenString)
@@ -48,7 +51,13 @@ func TestRegisterLogin(t *testing.T) {
 
 	claims, ok := ken.Claims.(jwt.MapClaims)
 	assert.True(t, ok)
-	assert.NotEmpty(t, claims)
+
+	assert.Equal(t, respReq.GetUserId(), int64(claims["uid"].(float64)))
+	assert.Equal(t, login, claims["email"].(string))
+
+	const deltaTime = 1
+
+	assert.InDelta(t, loginTime.Add(st.Cfg.TokenTTL).Unix(), claims["ext"].(float64), deltaTime)
 }
 
 func randomPassword() string {

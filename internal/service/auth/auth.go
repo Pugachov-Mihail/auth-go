@@ -30,7 +30,7 @@ type Auth struct {
 	UsrProvider     UserProvider
 	UsrSaver        UserSaver
 	registerNewUser RegisterNewUser
-	tokenSaver      TokenSaver
+	TokenSaver      TokenSaver
 	Cfg             configapp.Config
 }
 
@@ -51,7 +51,7 @@ type UserProvider interface {
 }
 
 type TokenSaver interface {
-	SaveToken(ctx context.Context, token string, id int64) error
+	SaveToken(ctx context.Context, token string, id int64) (int64, error)
 	RefreshToken(ctx context.Context, tokenNew string, tokenOld string) error
 }
 
@@ -64,12 +64,14 @@ func New(
 	log *slog.Logger,
 	userSaver UserSaver,
 	userProvider UserProvider,
+	TokenSaver TokenSaver,
 	tokenTTl time.Duration,
 	cfg *configapp.Config,
 ) *Auth {
 	return &Auth{
 		UsrSaver:    userSaver,
 		UsrProvider: userProvider,
+		TokenSaver:  TokenSaver,
 		TokenTTL:    tokenTTl,
 		Log:         log,
 		Cfg:         *cfg,
@@ -82,9 +84,11 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string) (st
 		slog.String("Auth ", Login),
 		slog.String("login", login))
 
-	log.Info("Пользователь " + login + "залогинился")
+	log.Info("Попытка пользователю: " + login + " залогиниться")
 
 	user, err := a.UsrProvider.User(ctx, login)
+
+	log.Debug("user: " + strconv.FormatInt(user.Id, 10) + " " + user.Email)
 
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserNotFound) {
@@ -107,9 +111,9 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string) (st
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
 
-	err = a.tokenSaver.SaveToken(ctx, token, user.Id)
+	_, err = a.TokenSaver.SaveToken(ctx, token, user.Id)
 	if err != nil {
-		return "", fmt.Errorf("ошибка сохранения токена")
+		return "", fmt.Errorf("ошибка сохранения токена %w", err)
 	}
 
 	return token, nil
@@ -132,7 +136,7 @@ func (a *Auth) RegisterUser(
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 
-	id, err := a.UsrSaver.SaveUser(ctx, log, login, passHash, email, steamId)
+	id, err := a.UsrSaver.SaveUser(ctx, log, email, passHash, login, steamId)
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserExists) {
 			log.Warn("Пользователь существует;", err)
@@ -169,7 +173,9 @@ func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
 	return roles, err
 }
 
+// AccessPermission обновление токена
 func (a *Auth) AccessPermission(ctx context.Context, token string) (string, error) {
+	//TODO написать тесты и поправить ручку
 	log := a.Log.With(slog.String("Auth", Permission))
 
 	user, err := a.UsrProvider.PermissionAccess(ctx, token)
@@ -184,7 +190,7 @@ func (a *Auth) AccessPermission(ctx context.Context, token string) (string, erro
 
 	tokenNew, err := jwt.NewToken(user, a.Cfg.Secret, a.TokenTTL)
 
-	err = a.tokenSaver.RefreshToken(ctx, tokenNew, token)
+	err = a.TokenSaver.RefreshToken(ctx, tokenNew, token)
 	if err != nil {
 		return "", fmt.Errorf("ошибка обновления токена: %w", err)
 	}

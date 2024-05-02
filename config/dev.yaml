@@ -1,4 +1,10 @@
 env: "dev"
+storage_path_dev:
+  POSTGRES_PASSWORD: "123456"
+  POSTGRES_HOST: "localhost"
+  POSTGRES_USER: "admin"
+  POSTGRES_DB: "auth"
+  POSTGRES_PORT: "5432"
 storage_path:
     POSTGRES_PASSWORD: "123456"
     POSTGRES_HOST: "db"

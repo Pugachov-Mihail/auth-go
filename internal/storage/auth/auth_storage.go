@@ -16,6 +16,7 @@ import (
 var (
 	ErrorUserNotFound = errors.New("пользователь не найден")
 	ErrorUserExists   = errors.New("пользователь существует")
+	ErrorNoRows       = errors.New("no rows in result set")
 )
 
 type Storage struct {
@@ -80,7 +81,10 @@ func (s *Storage) User(ctx context.Context, login string) (models.User, error) {
 	err := s.db.QueryRowContext(dbCtx, query, login).Scan(&user.Id, &user.Email, &user.PassHash)
 
 	if err != nil {
-		return models.User{}, fmt.Errorf("Gets user: %w", err)
+		if errors.As(err, &ErrorNoRows) {
+			return models.User{}, fmt.Errorf("отсутствует информация о пользователе: %v", err.Error())
+		}
+		return models.User{}, fmt.Errorf("ошибка получения данных: %w", err)
 	}
 
 	return user, nil

@@ -63,7 +63,7 @@ func (a *AuthServerApi) AuthRegistration(
 	id, err := a.auth.RegisterUser(ctx, req.GetLogin(), req.GetPassword(), req.GetEmail(), req.GetSteamId())
 
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "Ошибка создания пользователя")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	return &authServer.AuthRegistrationResponse{UserId: id}, nil

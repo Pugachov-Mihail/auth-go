@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func TestRegisterLogin(t *testing.T) {
+func TestLogin(t *testing.T) {
 	ctx, st := suite.New(t)
 
 	login := gofakeit.Email()
@@ -62,4 +62,49 @@ func TestRegisterLogin(t *testing.T) {
 
 func randomPassword() string {
 	return gofakeit.Password(true, true, true, true, false, 10)
+}
+
+func TestRegisterExistUser(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	login := gofakeit.Email()
+	pass := randomPassword()
+	steamId := gofakeit.Int32()
+
+	respReq, err := st.AuthClient.AuthRegistration(ctx, &auth.AuthRegistrationRequest{
+		Password:  pass,
+		Password2: pass,
+		Login:     login,
+		Email:     login,
+		SteamId:   int64(steamId),
+	})
+
+	require.NoError(t, err)
+	assert.NotEmpty(t, respReq.GetUserId())
+	t.Logf("Case 1")
+
+	respReq, err = st.AuthClient.AuthRegistration(ctx, &auth.AuthRegistrationRequest{
+		Password:  pass,
+		Password2: pass,
+		Login:     login,
+		Email:     login,
+		SteamId:   int64(steamId),
+	})
+
+	require.Error(t, err)
+	assert.Empty(t, respReq.GetUserId())
+	assert.ErrorContains(t, err, "пользователь существует")
+	t.Logf("Case 2")
+
+	respReq, err = st.AuthClient.AuthRegistration(ctx, &auth.AuthRegistrationRequest{
+		Password:  pass,
+		Password2: randomPassword(),
+		Login:     login,
+		Email:     login,
+		SteamId:   int64(steamId),
+	})
+	require.Error(t, err)
+	assert.Empty(t, respReq.GetUserId())
+	assert.ErrorContains(t, err, "Пароли не совпадают")
+	t.Logf("Case 3")
 }

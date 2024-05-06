@@ -1,6 +1,7 @@
-package auth_validate
+package tests
 
 import (
+	"auth/internal/validator/auth_validate"
 	"testing"
 )
 
@@ -33,7 +34,7 @@ func TestValidateLenValuesString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ValidateLenValuesString(tt.args.value, tt.args.maxLen); got != tt.want {
+			if got := auth_validate.ValidateLenValuesString(tt.args.value, tt.args.maxLen); got != tt.want {
 				t.Errorf("ValidateLenValuesString() = %v, want %v", got, tt.want)
 			}
 		})
@@ -101,7 +102,7 @@ func Test_validateEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ValidateEmail(tt.args.email)
+			got, err := auth_validate.ValidateEmail(tt.args.email)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("validateEmail() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -20,6 +20,9 @@ jobs:
       - name: Compose
       - uses: actions/checkout@v4
         run: docker-compose up
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '15'
 
 
 

@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Compose
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           secrets:
             "CONFIG=${{secrets.CONFIG}}"

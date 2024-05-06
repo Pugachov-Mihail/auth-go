@@ -17,8 +17,8 @@ jobs:
   app:
     runs-on: ubuntu-latest
     steps:
-      - name: Compose
       - uses: actions/checkout@v4
+      - name: Compose
         run: docker-compose up
       - uses: harmon758/postgresql-action@v1
         with:

@@ -88,8 +88,6 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string) (st
 
 	user, err := a.UsrProvider.User(ctx, login)
 
-	log.Debug("user: " + strconv.FormatInt(user.Id, 10) + " " + user.Email)
-
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserNotFound) {
 			a.Log.Warn("Пользователь не найден;", err)
@@ -139,10 +137,10 @@ func (a *Auth) RegisterUser(
 	id, err := a.UsrSaver.SaveUser(ctx, log, email, passHash, login, steamId)
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserExists) {
-			log.Warn("Пользователь существует;", err)
+			log.Warn("Пользователь существует: ", err)
 			return 0, fmt.Errorf("%s: %w", Register, err)
 		}
-		log.Error("Ошибка сохранения пользователя;", err)
+		log.Error("Ошибка сохранения пользователя: ", err)
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 
@@ -192,6 +190,7 @@ func (a *Auth) AccessPermission(ctx context.Context, token string) (string, erro
 
 	err = a.TokenSaver.RefreshToken(ctx, tokenNew, token)
 	if err != nil {
+		log.Warn("не обработанный токен")
 		return "", fmt.Errorf("ошибка обновления токена: %w", err)
 	}
 

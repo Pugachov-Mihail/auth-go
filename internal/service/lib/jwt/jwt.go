@@ -38,11 +38,11 @@ func ValidateToken(token string, st configapp.Config) bool {
 	claim := ken.Claims.(jwt.MapClaims)
 	tokenTime := claim["ext"]
 
-	return deltaTime(tokenTime.(float64))
+	return deltaTime(tokenTime.(float64), st.TokenTTL)
 }
 
-func deltaTime(tt float64) bool {
-	ct := time.Now().Unix()
+func deltaTime(tt float64, duration time.Duration) bool {
+	ct := time.Now().Add(duration).Unix()
 
 	if float64(ct) > tt {
 		return true

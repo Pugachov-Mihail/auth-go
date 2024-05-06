@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"net"
+	"strconv"
 	"testing"
 )
 
@@ -48,5 +49,5 @@ func New(t *testing.T) (context.Context, *Suite) {
 }
 
 func getAddress(cfg *configapp.Config) string {
-	return net.JoinHostPort(Host, "8002")
+	return net.JoinHostPort(Host, strconv.Itoa(cfg.GRPC.Port))
 }

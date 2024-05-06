@@ -34,6 +34,7 @@ func RegisterAuthServerApi(grpc *grpc.Server, auth Auth) {
 	authServer.RegisterAuthServerServer(grpc, &AuthServerApi{auth: auth})
 }
 
+// AuthLogin авторизация
 func (a *AuthServerApi) AuthLogin(
 	ctx context.Context, req *authServer.AuthLoginRequest) (*authServer.AuthLoginResponse, error) {
 	if !base_validate.ValidateLoginRequest(req) {
@@ -63,7 +64,7 @@ func (a *AuthServerApi) AuthRegistration(
 	id, err := a.auth.RegisterUser(ctx, req.GetLogin(), req.GetPassword(), req.GetEmail(), req.GetSteamId())
 
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "Ошибка создания пользователя")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	return &authServer.AuthRegistrationResponse{UserId: id}, nil

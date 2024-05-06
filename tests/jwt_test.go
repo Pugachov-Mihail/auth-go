@@ -1,8 +1,9 @@
-package jwt
+package tests
 
 import (
 	configapp "auth/internal/config"
 	"auth/internal/domain/models"
+	"auth/internal/service/lib/jwt"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -104,11 +105,11 @@ func TestNewToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewToken(tt.args.user, tt.args.secret, tt.args.duration)
+			got, err := jwt.NewToken(tt.args.user, tt.args.secret, tt.args.duration)
 			require.NoError(t, err)
 			assert.NotEmpty(t, got)
 
-			token := ValidateToken(got, tt.args.st)
+			token := jwt.ValidateToken(got, tt.args.st)
 			require.NoError(t, err)
 			assert.False(t, token)
 		})

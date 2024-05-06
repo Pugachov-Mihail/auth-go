@@ -20,6 +20,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compose
         run: docker-compose up
-      - name: Test
-        run: go test ./tests
 

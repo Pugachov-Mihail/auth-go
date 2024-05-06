@@ -13,19 +13,27 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build
       run: go build -v ./cmd/auth/main.go
-  test:
-    needs: [build]
-    runs-on: self-hosted
+
+  app:
+    runs-on: ubuntu-latest
     steps:
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      -
-        name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          push: false
-          tags: auth:latest
+      - uses: actions/checkout@v4
+      - name: Compose
+        run: docker-compose up
+
+#  test:
+#    needs: [build]
+#    runs-on: self-hosted
+#    steps:
+#      -
+#        name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3
+#      -
+#        name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#      -
+#        name: Build and push
+#        uses: docker/build-push-action@v5
+#        with:
+#          push: false
+#          tags: auth:latest

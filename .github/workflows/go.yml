@@ -20,9 +20,7 @@ jobs:
       - name: Compose
       - uses: actions/checkout@v4
         run: docker-compose up
-        with:
-          secrets:
-            "CONFIG=${{secrets.CONFIG}}"
+
 
 
 

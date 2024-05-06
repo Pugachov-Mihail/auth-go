@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
-	"log/slog"
 )
 
 type serverAdminApi struct {
@@ -20,11 +19,8 @@ func RegisterServerApi(grpc *grpc.Server) {
 func (s *serverAdminApi) AdminPermission(
 	ctx context.Context,
 	req *adminServer.AdminPermissionRequest) (*adminServer.AdminPermissionResponse, error) {
-	var log *slog.Logger
-	log.With("Admin Permission")
-
 	if !base_validate.ValidatorAdminPermission(req) {
-		log.Warn("Пустые данные")
+
 		return nil, fmt.Errorf("Пустые данные")
 	}
 
@@ -34,11 +30,9 @@ func (s *serverAdminApi) AdminPermission(
 func (s *serverAdminApi) AdminSettingsPanel(
 	ctx context.Context,
 	req *adminServer.AdminSettiongsPanelRequest) (*adminServer.AdminSettingsPanelResponse, error) {
-	var log *slog.Logger
-	log.With("Admin Permission")
 
 	if !base_validate.ValidatorAdminSetting(req) {
-		log.Warn("Пустые данные")
+
 		return nil, fmt.Errorf("Пустые данные")
 	}
 	return &adminServer.AdminSettingsPanelResponse{Service: 12}, nil

@@ -6,7 +6,7 @@ services:
     container_name: auth_mc
     depends_on:
       - db
-#    restart: always
+    restart: always
     environment:
       - CONFIG_PATH=./config/dev.yaml
     ports:

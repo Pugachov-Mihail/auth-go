@@ -34,6 +34,7 @@ func RegisterAuthServerApi(grpc *grpc.Server, auth Auth) {
 	authServer.RegisterAuthServerServer(grpc, &AuthServerApi{auth: auth})
 }
 
+// AuthLogin авторизация
 func (a *AuthServerApi) AuthLogin(
 	ctx context.Context, req *authServer.AuthLoginRequest) (*authServer.AuthLoginResponse, error) {
 	if !base_validate.ValidateLoginRequest(req) {

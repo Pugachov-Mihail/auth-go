@@ -18,7 +18,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: go build -v ./cmd/auth/main.go
       - name: Run
-        run: ./cmd/auth/main
+        run: go run ./cmd/auth/main.go --config=${{secrets.CONFIG}}

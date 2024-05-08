@@ -6,7 +6,7 @@ create table users_my (
     login varchar
 );
 
-drop table access_token;
+
 
 create table access_token (
     user_id bigint unique,
@@ -14,3 +14,5 @@ create table access_token (
 );
 
 insert into access_token (user_id, token) VALUES (9, 'commodo anim');
+
+select * from access_token;

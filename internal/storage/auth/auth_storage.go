@@ -141,7 +141,8 @@ func (s *Storage) PermissionAccess(ctx context.Context, token string) (models.Us
 	var user models.User
 
 	if err := s.db.QueryRowContext(dbCtx, userId, token).Scan(&user.Id); err != nil {
-		return models.User{}, fmt.Errorf("ошибка получения пользователя")
+
+		return models.User{}, fmt.Errorf("ошибка получения токена: %v", err)
 	}
 
 	if err := s.db.QueryRowContext(dbCtx, query, user.Id).Scan(&user.Id, &user.Email); err != nil {
@@ -159,22 +160,23 @@ func (s *Storage) SaveToken(ctx context.Context, token string, id int64) (int64,
 
 	var user models.User
 
-	err := s.db.QueryRowContext(dbCtx, query, id, token).Scan(&user.Id)
-	if err != nil {
+	if err := s.db.QueryRowContext(dbCtx, query, id, token).Scan(&user.Id); err != nil {
 		return 0, fmt.Errorf("ошибка сохранения токена")
 	}
 	return user.Id, nil
 }
 
 func (s *Storage) RefreshToken(ctx context.Context, tokenNew string, tokenOld string) error {
-	query := `UPDATE access_token SET token=$1 WHERE token = $2;`
+	query := `UPDATE access_token SET token=$1 WHERE token = $2 RETURNING user_id;`
 
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
-	err := s.db.QueryRowContext(dbCtx, query, tokenNew, tokenOld)
-	if err != nil {
-		return fmt.Errorf("ошибка обновления токена")
-	}
-	return nil
 
+	var user models.User
+
+	if err := s.db.QueryRowContext(dbCtx, query, tokenNew, tokenOld).Scan(&user.Id); err != nil {
+		return fmt.Errorf("ошибка обновления токена: %v", err)
+	}
+
+	return nil
 }

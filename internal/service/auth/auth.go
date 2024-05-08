@@ -175,6 +175,7 @@ func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
 func (a *Auth) AccessPermission(ctx context.Context, token string) (string, error) {
 	//TODO написать тесты и поправить ручку
 	log := a.Log.With(slog.String("Auth", Permission))
+	log.Debug("Смена токена")
 
 	user, err := a.UsrProvider.PermissionAccess(ctx, token)
 	if err != nil {
@@ -183,16 +184,17 @@ func (a *Auth) AccessPermission(ctx context.Context, token string) (string, erro
 	}
 
 	if jwt.ValidateToken(token, a.Cfg) {
+		log.Debug("Токен не сменен")
 		return token, nil
 	}
 
 	tokenNew, err := jwt.NewToken(user, a.Cfg.Secret, a.TokenTTL)
 
-	err = a.TokenSaver.RefreshToken(ctx, tokenNew, token)
-	if err != nil {
-		log.Warn("не обработанный токен")
+	if err = a.TokenSaver.RefreshToken(ctx, tokenNew, token); err != nil {
+		log.Warn("Ошибка обновления токена")
 		return "", fmt.Errorf("ошибка обновления токена: %w", err)
 	}
 
+	log.Debug("Токен сменен")
 	return tokenNew, nil
 }

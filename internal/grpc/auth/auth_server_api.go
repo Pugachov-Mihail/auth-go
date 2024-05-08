@@ -93,7 +93,7 @@ func (a *AuthServerApi) AuthAccessPermission(
 
 	permission, err := a.auth.AccessPermission(ctx, req.GetToken())
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Отсутствует доступ")
+		return nil, status.Error(codes.Internal, error.Error(err))
 	}
 
 	return &authServer.AccessPermissionResponse{AccessPermission: permission}, nil

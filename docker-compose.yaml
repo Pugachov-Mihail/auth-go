@@ -1,17 +1,6 @@
 version: "3"
 
 services:
-  auth_mc:
-    build: .
-    container_name: auth_mc
-    depends_on:
-      - db
-    restart: always
-    environment:
-      - CONFIG_PATH=./config/dev.yaml
-    ports:
-      - "8002:44044"
-
   db:
     image: postgres
     container_name: db
@@ -25,3 +14,13 @@ services:
     ports:
       - "5432:5432"
 
+  auth_mc:
+    build: .
+    container_name: auth_mc
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - CONFIG_PATH=./config/dev.yaml
+    ports:
+      - "8002:44044"

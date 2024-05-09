@@ -21,6 +21,10 @@ type Config struct {
 	TokenTTL    time.Duration `yaml:"tokenTTL"`
 }
 
+type KafkaConfig struct {
+	Broker string `yaml:"broker_url"`
+}
+
 type GRPCConf struct {
 	Port    int           `yaml:"port"`
 	TimeOut time.Duration `yaml:"timeout"`

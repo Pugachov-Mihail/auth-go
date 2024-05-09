@@ -29,9 +29,9 @@ type Auth struct {
 	TokenTTL        time.Duration
 	UsrProvider     UserProvider
 	UsrSaver        UserSaver
-	registerNewUser RegisterNewUser
 	TokenSaver      TokenSaver
 	Cfg             configapp.Config
+	registerNewUser RegisterNewUser
 }
 
 type UserSaver interface {
@@ -56,7 +56,7 @@ type TokenSaver interface {
 }
 
 type RegisterNewUser interface {
-	UserRegisterKafka(ctx context.Context, log *slog.Logger, userId int64, steamId int64) (bool, error)
+	UserRegisterKafka(ctx context.Context, logs *slog.Logger, userId int64, steamId int64) (bool, error)
 }
 
 // New конструктор сервисного слоя Auth
@@ -145,13 +145,15 @@ func (a *Auth) RegisterUser(
 		return 0, fmt.Errorf("%s: %w", Register, err)
 	}
 
-	log.Info("Пользователь ", login, " зарегистрировался")
-
+	log.Info("Пользователь ", login, " зарегестрировался")
+	log.Info(" ", id)
+	log.Info(" ", steamId)
 	////TODO Сделать вызов кафки для передачи остальным мс о том что пользователь создан
-	//_, err = a.registerNewuser.UserRegisterKafka(ctx, log, id, steamId)
-	//if err != nil {
-	//	log.Error("Ошибка передачи информации о регистрации пользователя" + strconv.FormatInt(id, 10) + login)
-	//}
+	_, err = a.registerNewUser.UserRegisterKafka(ctx, a.Log, id, steamId)
+	if err != nil {
+		log.Error("Ошибка передачи информации о регистрации пользователя" + strconv.FormatInt(id, 10) + login)
+		return 0, fmt.Errorf("ошибка кафки: %w", err)
+	}
 
 	return id, nil
 }

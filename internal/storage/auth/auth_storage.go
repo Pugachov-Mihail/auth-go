@@ -45,7 +45,7 @@ func (s *Storage) SaveUser(
 	login string,
 	steamId int64) (int64, error) {
 
-	exists, err := s.UserExists(ctx, email)
+	exists, err := s.UserExists(ctx, email, login)
 	if err != nil {
 		return 0, err
 	}
@@ -110,22 +110,22 @@ func (s *Storage) RolesUser(ctx context.Context, userId int64) (models.Roles, er
 	return roles, nil
 }
 
-func (s *Storage) UserExists(ctx context.Context, email string) (bool, error) {
-	query := `SELECT email FROM users_my WHERE email = $1;`
+func (s *Storage) UserExists(ctx context.Context, email, login string) (bool, error) {
+	query := `SELECT email, login FROM users_my WHERE email = $1 OR login=$2;`
 
 	var user models.User
 
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	if err := s.db.QueryRowContext(dbCtx, query, email).Scan(&user.Email); err != nil {
+	if err := s.db.QueryRowContext(dbCtx, query, email, login).Scan(&user.Email, &user.Login); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
 		return false, fmt.Errorf("exists user error: %w", err)
 	}
 
-	if email == user.Email {
+	if email == user.Email || login == user.Login {
 		return true, ErrorUserExists
 	}
 	return false, nil

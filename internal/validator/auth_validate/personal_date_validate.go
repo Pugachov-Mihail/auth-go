@@ -6,7 +6,7 @@ import (
 )
 
 func ValidateEmail(email string) (bool, error) {
-	result, err := regexp.MatchString(`^[A-z0-9]*@[A-z0-9-]*\.[A-z]{2,4}$`, email)
+	result, err := regexp.MatchString(`^[\w.-]+@[A-z0-9-]*\.[A-z]{2,4}$`, email)
 	if err != nil {
 		return false, fmt.Errorf("ошибка проверки почты")
 	}

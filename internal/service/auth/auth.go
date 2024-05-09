@@ -90,27 +90,28 @@ func (a *Auth) LoginUser(ctx context.Context, login string, password string) (st
 
 	if err != nil {
 		if errors.Is(err, auth_storage.ErrorUserNotFound) {
-			a.Log.Warn("Пользователь не найден;", err)
+			log.Warn("Пользователь не найден;", err)
 
 			return "", fmt.Errorf("%s: %s", Login, ErrInvalid)
 		}
-		a.Log.Error("Ошибка получения пользователя;", err)
+		log.Error("Ошибка получения пользователя;", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
-		a.Log.Warn(ErrInvalid, err)
+		log.Warn(ErrInvalid, err)
 		return "", fmt.Errorf("%s: %s", Login, ErrInvalid)
 	}
 
 	token, err := jwt.NewToken(user, a.Cfg.Secret, a.TokenTTL)
 	if err != nil {
-		a.Log.With("Ошибка генерации токена;", err)
+		log.Warn("Ошибка генерации токена;", err)
 		return "", fmt.Errorf("%s: %w", Login, err)
 	}
 
 	_, err = a.TokenSaver.SaveToken(ctx, token, user.Id)
 	if err != nil {
+		log.Warn("ошибка сохранения токена ", err)
 		return "", fmt.Errorf("ошибка сохранения токена %w", err)
 	}
 

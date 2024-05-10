@@ -3,6 +3,7 @@ package app
 import (
 	grpcapp "auth/internal/app/grpc"
 	configapp "auth/internal/config"
+	kafka_user "auth/internal/kafka"
 	"auth/internal/service/auth"
 	resetservice "auth/internal/service/reset"
 	authstorage "auth/internal/storage/auth"
@@ -22,7 +23,12 @@ func New(log *slog.Logger, port int, storagePath configapp.ConfigDB, tokenTT tim
 		panic(err)
 	}
 
-	authService := auth.New(log, storage, storage, storage, tokenTT, cfg)
+	conf, err := kafka_user.New(cfg)
+	if err != nil {
+		log.Warn("Ошибка коннекта с кафкой")
+		return nil
+	}
+	authService := auth.New(log, storage, storage, storage, tokenTT, cfg, conf)
 	resetService := resetservice.New(log, resetStorage)
 	grpcAuth := grpcapp.New(log, port, authService, resetService)
 

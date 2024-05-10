@@ -19,10 +19,13 @@ type Config struct {
 	GRPC        GRPCConf      `yaml:"grpc" env-required:"true"`
 	Secret      string        `yaml:"secret"`
 	TokenTTL    time.Duration `yaml:"tokenTTL"`
+	Kafka       KafkaConf     `yaml:"kafka"`
 }
 
-type KafkaConfig struct {
-	Broker string `yaml:"broker_url"`
+type KafkaConf struct {
+	Broker    string `yaml:"broker"`
+	Topic     string `yaml:"topic"`
+	Partition int    `yaml:"partition"`
 }
 
 type GRPCConf struct {

@@ -3,6 +3,7 @@ package auth
 import (
 	configapp "auth/internal/config"
 	"auth/internal/domain/models"
+	kafka_user "auth/internal/kafka"
 	"auth/internal/service/lib/jwt"
 	auth_storage "auth/internal/storage/auth"
 	"context"
@@ -56,7 +57,7 @@ type TokenSaver interface {
 }
 
 type RegisterNewUser interface {
-	UserRegisterKafka(ctx context.Context, logs *slog.Logger, userId int64, steamId int64) (bool, error)
+	UserRegisterKafka(logs *slog.Logger, userId int64, steamId int64) error
 }
 
 // New конструктор сервисного слоя Auth
@@ -67,14 +68,16 @@ func New(
 	TokenSaver TokenSaver,
 	tokenTTl time.Duration,
 	cfg *configapp.Config,
+	kf *kafka_user.Conf,
 ) *Auth {
 	return &Auth{
-		UsrSaver:    userSaver,
-		UsrProvider: userProvider,
-		TokenSaver:  TokenSaver,
-		TokenTTL:    tokenTTl,
-		Log:         log,
-		Cfg:         *cfg,
+		UsrSaver:        userSaver,
+		UsrProvider:     userProvider,
+		TokenSaver:      TokenSaver,
+		TokenTTL:        tokenTTl,
+		Log:             log,
+		Cfg:             *cfg,
+		registerNewUser: kf,
 	}
 }
 
@@ -146,11 +149,8 @@ func (a *Auth) RegisterUser(
 	}
 
 	log.Info("Пользователь ", login, " зарегестрировался")
-	log.Info(" ", id)
-	log.Info(" ", steamId)
-	////TODO Сделать вызов кафки для передачи остальным мс о том что пользователь создан
-	_, err = a.registerNewUser.UserRegisterKafka(ctx, a.Log, id, steamId)
-	if err != nil {
+
+	if err := a.registerNewUser.UserRegisterKafka(a.Log, id, steamId); err != nil {
 		log.Error("Ошибка передачи информации о регистрации пользователя" + strconv.FormatInt(id, 10) + login)
 		return 0, fmt.Errorf("ошибка кафки: %w", err)
 	}

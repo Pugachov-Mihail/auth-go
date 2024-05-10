@@ -17,5 +17,11 @@ grpc:
 
 secret: "add"
 tokenTTL: 1h
-broker_url: "localhost:9092"
+
+kafka:
+  broker: "kafka:9092"
+  topic: "create-user"
+  partition: 0
+
+
   

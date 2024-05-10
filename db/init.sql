@@ -7,7 +7,6 @@ create table users_my (
 );
 
 
-
 create table access_token (
     user_id bigint unique,
     token varchar

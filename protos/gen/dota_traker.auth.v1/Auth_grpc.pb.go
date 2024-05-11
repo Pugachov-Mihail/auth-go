@@ -26,6 +26,7 @@ type AuthServerClient interface {
 	AuthRegistration(ctx context.Context, in *AuthRegistrationRequest, opts ...grpc.CallOption) (*AuthRegistrationResponse, error)
 	AuthRoles(ctx context.Context, in *AuthRolesRequest, opts ...grpc.CallOption) (*AuthRolesResponse, error)
 	AuthAccessPermission(ctx context.Context, in *AuthLoginResponse, opts ...grpc.CallOption) (*AccessPermissionResponse, error)
+	AuthLogout(ctx context.Context, in *AuthLoginResponse, opts ...grpc.CallOption) (*LogoutResponse, error)
 }
 
 type authServerClient struct {
@@ -72,6 +73,15 @@ func (c *authServerClient) AuthAccessPermission(ctx context.Context, in *AuthLog
 	return out, nil
 }
 
+func (c *authServerClient) AuthLogout(ctx context.Context, in *AuthLoginResponse, opts ...grpc.CallOption) (*LogoutResponse, error) {
+	out := new(LogoutResponse)
+	err := c.cc.Invoke(ctx, "/auth.AuthServer/AuthLogout", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServerServer is the server API for AuthServer service.
 // All implementations must embed UnimplementedAuthServerServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type AuthServerServer interface {
 	AuthRegistration(context.Context, *AuthRegistrationRequest) (*AuthRegistrationResponse, error)
 	AuthRoles(context.Context, *AuthRolesRequest) (*AuthRolesResponse, error)
 	AuthAccessPermission(context.Context, *AuthLoginResponse) (*AccessPermissionResponse, error)
+	AuthLogout(context.Context, *AuthLoginResponse) (*LogoutResponse, error)
 	mustEmbedUnimplementedAuthServerServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedAuthServerServer) AuthRoles(context.Context, *AuthRolesReques
 }
 func (UnimplementedAuthServerServer) AuthAccessPermission(context.Context, *AuthLoginResponse) (*AccessPermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthAccessPermission not implemented")
+}
+func (UnimplementedAuthServerServer) AuthLogout(context.Context, *AuthLoginResponse) (*LogoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthLogout not implemented")
 }
 func (UnimplementedAuthServerServer) mustEmbedUnimplementedAuthServerServer() {}
 
@@ -184,6 +198,24 @@ func _AuthServer_AuthAccessPermission_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthServer_AuthLogout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthLoginResponse)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServerServer).AuthLogout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.AuthServer/AuthLogout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServerServer).AuthLogout(ctx, req.(*AuthLoginResponse))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthServer_ServiceDesc is the grpc.ServiceDesc for AuthServer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var AuthServer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthAccessPermission",
 			Handler:    _AuthServer_AuthAccessPermission_Handler,
+		},
+		{
+			MethodName: "AuthLogout",
+			Handler:    _AuthServer_AuthLogout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -23,6 +23,7 @@ type Auth interface {
 	LoginUser(ctx context.Context, login string, password string) (string, error)
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
 	AccessPermission(ctx context.Context, token string) (string, error)
+	LogoutUser(ctx context.Context, token string) (bool, error)
 }
 
 type AuthServerApi struct {
@@ -97,4 +98,18 @@ func (a *AuthServerApi) AuthAccessPermission(
 	}
 
 	return &authServer.AccessPermissionResponse{AccessPermission: permission}, nil
+}
+
+func (a *AuthServerApi) AuthLogout(
+	ctx context.Context, req *authServer.AuthLoginResponse) (*authServer.LogoutResponse, error) {
+	if req.GetToken() == "" {
+		return nil, status.Error(codes.InvalidArgument, "Отсутствует токен")
+	}
+
+	logout, err := a.auth.LogoutUser(ctx, req.GetToken())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Ошибка logout")
+	}
+
+	return &authServer.LogoutResponse{Logout: logout}, nil
 }

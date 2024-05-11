@@ -180,3 +180,18 @@ func (s *Storage) RefreshToken(ctx context.Context, tokenNew string, tokenOld st
 
 	return nil
 }
+
+func (s *Storage) Logout(ctx context.Context, token string) error {
+	query := `DELETE FROM access_token WHERE token = $1;`
+
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	var user models.User
+
+	if err := s.db.QueryRowContext(dbCtx, query, token).Scan(&user.Id); err != nil {
+		return fmt.Errorf("ошибка удаления токена: %v", err)
+	}
+
+	return nil
+}

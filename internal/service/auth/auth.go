@@ -47,6 +47,7 @@ type UserSaver interface {
 
 type UserProvider interface {
 	User(ctx context.Context, login string) (models.User, error)
+	Logout(ctx context.Context, token string) error
 	RolesUser(ctx context.Context, uid int64) (models.Roles, error)
 	PermissionAccess(ctx context.Context, token string) (models.User, error)
 }
@@ -178,7 +179,6 @@ func (a *Auth) RolesUser(ctx context.Context, uid int64) (models.Roles, error) {
 func (a *Auth) AccessPermission(ctx context.Context, token string) (string, error) {
 	//TODO написать тесты и поправить ручку
 	log := a.Log.With(slog.String("Auth", Permission))
-	log.Debug("Смена токена")
 
 	user, err := a.UsrProvider.PermissionAccess(ctx, token)
 	if err != nil {
@@ -200,4 +200,15 @@ func (a *Auth) AccessPermission(ctx context.Context, token string) (string, erro
 
 	log.Debug("Токен сменен")
 	return tokenNew, nil
+}
+
+func (a *Auth) LogoutUser(ctx context.Context, token string) (bool, error) {
+	log := a.Log.With(slog.String("Auth", "Logout"))
+
+	if err := a.UsrProvider.Logout(ctx, token); err != nil {
+		log.Warn("Ошибка выхода из профиля: ", err)
+		return false, fmt.Errorf("ошибка выхода из профиля: %w", err)
+	}
+
+	return true, nil
 }

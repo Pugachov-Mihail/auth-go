@@ -187,9 +187,9 @@ func (s *Storage) Logout(ctx context.Context, token string) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	var user models.User
+	_, err := s.db.QueryContext(dbCtx, query, token)
 
-	if err := s.db.QueryRowContext(dbCtx, query, token).Scan(&user.Id); err != nil {
+	if err != nil {
 		return fmt.Errorf("ошибка удаления токена: %v", err)
 	}
 

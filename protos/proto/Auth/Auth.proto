@@ -9,6 +9,7 @@ service AuthServer {
   rpc AuthRegistration(AuthRegistrationRequest) returns (AuthRegistrationResponse);
   rpc AuthRoles(AuthRolesRequest) returns (AuthRolesResponse);
   rpc AuthAccessPermission(AuthLoginResponse) returns (AccessPermissionResponse);
+  rpc AuthLogout(AuthLoginResponse) returns (LogoutResponse);
 }
 
 message AuthRegistrationRequest {
@@ -17,6 +18,10 @@ message AuthRegistrationRequest {
     string Password2 = 3;
     int64 SteamId = 4;
     string Email = 5;
+}
+
+message LogoutResponse {
+    bool Logout = 1;
 }
 
 message AuthLoginRequest {
@@ -44,3 +49,4 @@ message AuthRolesRequest {
 message AccessPermissionResponse {
   string AccessPermission = 1;
 }
+

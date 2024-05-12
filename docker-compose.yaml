@@ -11,6 +11,10 @@ services:
       POSTGRES_PASSWORD: "123456"
       POSTGRES_USER: "admin"
       POSTGRES_DB: "auth"
+
+    command:
+      - cd tests
+      - go test
     ports:
       - "5432:5432"
 

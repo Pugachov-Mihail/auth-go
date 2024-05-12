@@ -16,7 +16,8 @@ import (
 var (
 	ErrorUserNotFound = errors.New("пользователь не найден")
 	ErrorUserExists   = errors.New("пользователь существует")
-	ErrorNoRows       = errors.New("no rows in result set")
+	// ErrorNoRows TODO Убрать эту херню и поправить ошибки
+	ErrorNoRows = errors.New("no rows in result set")
 )
 
 type Storage struct {
@@ -103,7 +104,7 @@ func (s *Storage) RolesUser(ctx context.Context, userId int64) (models.Roles, er
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.Roles{}, fmt.Errorf("Roles: %w", err)
+			return models.Roles{}, fmt.Errorf("roles: %w", err)
 		}
 		return models.Roles{}, fmt.Errorf("roles: %w", err)
 	}

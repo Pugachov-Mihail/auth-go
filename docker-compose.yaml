@@ -55,7 +55,7 @@ services:
       depends_on:
         - db
         - kafka
-      #    restart: always
+      restart: always
       environment:
         - CONFIG_PATH=./config/dev.yaml
       ports:

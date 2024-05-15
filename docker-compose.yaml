@@ -21,8 +21,6 @@ services:
       - db
       - kafka
 #    restart: always
-    command:
-      - go test ./tests
     environment:
       - CONFIG_PATH=./config/dev.yaml
     ports:

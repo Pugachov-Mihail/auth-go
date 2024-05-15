@@ -14,18 +14,6 @@ services:
     ports:
       - "5432:5432"
 
-  auth_mc:
-    build: .
-    container_name: auth_mc
-    depends_on:
-      - db
-      - kafka
-#    restart: always
-    environment:
-      - CONFIG_PATH=./config/dev.yaml
-    ports:
-      - "8002:44044"
-
   kafka:
     image: bitnami/kafka:latest
     depends_on:
@@ -60,3 +48,15 @@ services:
     links:
       - kafka
       - zookeeper
+
+  auth_mc:
+      build: .
+      container_name: auth_mc
+      depends_on:
+        - db
+        - kafka
+      #    restart: always
+      environment:
+        - CONFIG_PATH=./config/dev.yaml
+      ports:
+        - "8002:44044"
